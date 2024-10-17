@@ -8,9 +8,9 @@
 body {
     font-family: 'Arial', sans-serif;
     background: 
-       
-        url('webbackground.jpg') no-repeat center center fixed; /* Background image */
-    background-size: cover; /* Ensures the background covers the entire area */
+        
+        url('webbackground.jpg') no-repeat center center fixed;
+    background-size: cover;
     color: #000;
     display: flex;
     flex-direction: column;
@@ -54,44 +54,17 @@ nav {
 .nav-links {
     display: flex;
     list-style: none;
-    padding: left 30px;
 }
 
 .nav-links li {
-    margin-left: 60px;
+    margin-left: 20px;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #002409;
+    color: #000;
     font-size: 16px;
     font-weight: bold;
-}
-
-.hero-section {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 40px;
-    margin-top: 40px;
-}
-
-.hero-text h2 {
-    font-size: 80px;
-    color: #227a35;
-    font-weight: bold;
-}
-
-.hero-text p {
-    font-size: 50px;
-    color: #041007;
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-.bin-image img {
-    width: 350px;
-    height: auto;
 }
 
 /* Login Section */
@@ -126,14 +99,28 @@ nav {
     font-size: 14px;
     color: #333;
     margin-bottom: 5px;
+    text-align: left;
+    font-weight: bold;
 }
 
-.input-group input {
-    width: 100%;  /* Make the input fields take the full width */
-    padding: 10px;
-    font-size: 14px;
+.input-field {
+    display: flex;
+    align-items: center;
+    background: white;
     border: 1px solid #ccc;
     border-radius: 5px;
+    padding: 10px;
+}
+
+.input-field i {
+    margin-right: 10px;
+    color: #888;
+}
+
+.input-field input {
+    border: none;
+    outline: none;
+    flex-grow: 1;
 }
 
 .login-button {
@@ -163,38 +150,9 @@ nav {
     text-decoration: underline;
 }
 
-.register-link {
-    display: block;
-    margin-top: 20px;
-    color: #333;
-    text-decoration: none;
-}
-
-.register-link:hover {
-    text-decoration: underline;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
-    .hero-section {
-        flex-direction: column;
-        align-items: center;
+    .login-box {
+        width: 90%;
     }
-
-    .bin-image img {
-        width: 200px;
-    }
-}
-.login-box {
-    width: 90%;
-}
-
-.input-group {
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.input-group label {
-    margin-left: 0;
-    margin-top: 10px;
 }
