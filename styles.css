@@ -1,0 +1,106 @@
+/* General reset for margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: 
+       
+        url('webbackground.jpg') no-repeat center center fixed; /* Background image */
+    background-size: cover; /* Ensures the background covers the entire area */
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 40px;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 60px;
+    height: auto;
+    margin-right: 15px;
+}
+
+.brand-info h1 {
+    font-size: 24px;
+    color: white;
+    font-weight: bold;
+}
+
+.brand-info p {
+    font-size: 14px;
+    color: #f3f3f3;
+}
+
+nav {
+    margin-left: auto;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+
+.nav-links li {
+    margin-left: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.hero-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 40px;
+    margin-top: 40px;
+}
+
+.hero-text h2 {
+    font-size: 80px;
+    color: #19742d;
+    font-weight: bold;
+}
+
+.hero-text p {
+    font-size: 50px;
+    color: #041007;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.bin-image img {
+    width: 350px;
+    height: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .bin-image img {
+        width: 200px;
+    }
+}
