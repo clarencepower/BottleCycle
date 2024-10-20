@@ -27,7 +27,7 @@ if(isset($_POST["submit"])) {
             $_SESSION["email"] = $email;
 
             // Redirect to dashboard.html after successful login
-            header("Location: dashboard.html");
+            header("Location:dashboard.html");
             exit(); // Ensure the script stops executing after the redirect
         } else {
             echo "<script> alert('Incorrect Password'); </script>";
@@ -42,7 +42,6 @@ if(isset($_POST["submit"])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
     <link rel="stylesheet" href="login-register.css">

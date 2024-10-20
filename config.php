@@ -1,4 +1,4 @@
 <?php
 session_start();
-$conn = mysqli_connect("localhost", "root", "", "bottle_counter");
+$conn = mysqli_connect("localhost", "root", "", "bottlecycle-ctu");
 ?>

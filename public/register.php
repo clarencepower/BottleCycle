@@ -23,10 +23,7 @@ if(isset($_POST["submit"])) {
             $query->bind_param("ss", $email, $hashedPassword);
 
             if($query->execute()) {
-                echo "<script>
-                        alert('Registration Successful');
-                        window.location.href = 'login.php'; // Redirect to login page
-                      </script>";
+                echo "<script> alert('Registration Successful'); </script>";
             } else {
                 echo "<script> alert('Error during registration'); </script>";
             }
@@ -37,12 +34,10 @@ if(isset($_POST["submit"])) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
     <link rel="stylesheet" href="login-register.css">

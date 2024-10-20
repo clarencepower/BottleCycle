@@ -1,65 +1,25 @@
-<?php
-require 'config.php';
-
-if(isset($_POST["submit"])) {
-    $email = $_POST["email"];
-    $password = $_POST["password"];
-    $confirmpassword = $_POST["confirm_password"];
-
-    // Prepare SQL query to prevent SQL injection
-    $duplicate = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $duplicate->bind_param("s", $email);
-    $duplicate->execute();
-    $result = $duplicate->get_result();
-
-    if($result->num_rows > 0) {
-        echo "<script> alert('Email is already taken'); </script>";
-    } else {
-        if($password == $confirmpassword) {
-            // Hash the password before storing it in the database
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-            $query = $conn->prepare("INSERT INTO users (email, password) VALUES (?, ?)");
-            $query->bind_param("ss", $email, $hashedPassword);
-
-            if($query->execute()) {
-                echo "<script>
-                        alert('Registration Successful');
-                        window.location.href = 'login.php'; // Redirect to login page
-                      </script>";
-            } else {
-                echo "<script> alert('Error during registration'); </script>";
-            }
-        } else {
-            echo "<script> alert('Password does not match'); </script>";
-        }
-    }
-}
-?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
     <link rel="stylesheet" href="login-register.css">
     <script>
-        function validateForm() {
-            var password = document.getElementById("password").value;
-            var confirm_password = document.getElementById("confirm_password").value;
+function validateForm() {
+    var password = document.getElementById("password").value;
+    var confirm_password = document.getElementById("confirm_password").value;
 
-            if (password !== confirm_password) {
-                alert("Passwords do not match.");
-                return false;
-            }
-            return true;
-        }
-    </script>
+    if (password !== confirm_password) {
+        alert("Passwords do not match.");
+        return false;
+    }
+    return true;
+}
+</script>
+
 </head>
-<body>
+<body >
     <header>
         <div class="logo-container">
             <img src="logo.png" alt="Bottle Cycle Logo" class="logo">
@@ -81,8 +41,9 @@ if(isset($_POST["submit"])) {
         <section class="login-section">
             <div class="login-box">
                 <h2>Register</h2>
-                <!-- Define action to point to this PHP file -->
-                <form action="register.php" method="POST" onsubmit="return validateForm()">
+                <!-- Add action and method to submit the form to register.php using POST -->
+                <form action="" method="POST" onsubmit="return validateForm()">
+
                     <div class="input-group">
                         <label for="email">Email</label>
                         <div class="input-field">
@@ -107,12 +68,13 @@ if(isset($_POST["submit"])) {
                         </div>
                     </div>
     
-                    <button type="submit" name="submit" class="login-button">Register</button>
+                    <button type="submit" class="login-button">Register</button>
                 </form>
     
-                <a href="login.php" class="register-link">Login</a>
+                <a href="loginpage.html" class="register-link">Login</a>
             </div>
         </section>
     </main>
+    
 </body>
 </html>
