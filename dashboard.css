@@ -155,3 +155,29 @@ body {
     margin-top: 10px;
     font-size: 14px;
 }
+/* Weather section styling */
+.weather {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.weather-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.weather-info img {
+    margin-right: 20px;
+}
+
+#temperature {
+    font-size: 36px;
+    font-weight: bold;
+}
+
+#weather-description {
+    font-size: 18px;
+    color: #666;
+}
+

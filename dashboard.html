@@ -6,6 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
     <link rel="stylesheet" href="dashboard.css">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- FullCalendar CSS and JS -->
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.js'></script>
+
 </head>
 <body>
 
@@ -21,29 +29,32 @@
             </div>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="#">Dashboard</a></li>
-                    <li><a href="#">Notifications</a></li>
-                    <li><a href="#">Profile</a></li>
-                    <li><a href="#">Bottle Bin</a></li>
-                    <li><a href="#">Reports</a></li>
-                    <li><a href="logout.php">Logout</a></li>
+                    <li><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+                    <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
+                    <li><a href="#"><i class="fas fa-trash-alt"></i> Bottle Bin</a></li>
+                    <li><a href="#"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>
         </aside>
 
         <!-- Main Content -->
         <main class="content">
-            <!-- Time Widget -->
+            <!-- Time and Weather Widget -->
             <section class="widget time-widget">
                 <h2>Welcome</h2>
                 <div class="time">
-                    <h3>10:35 AM</h3>
-                    <p>Cloudy Thursday</p>
-                    <p>31° C</p>
+                    <h3 id="current-time">Loading...</h3>
+                    <p id="day-of-week">Loading...</p>
                 </div>
+            </section>
+
+            <!-- Bottles Collected Widget -->
+            <section class="widget time-widget">
                 <div class="bottles">
                     <h4>Total Bottles Collected</h4>
-                    <p>1,002</p>
+                    <p id="bottle-count">Loading...</p>
                 </div>
             </section>
 
@@ -62,28 +73,35 @@
                 </div>
             </section>
 
-            <!-- Calendar -->
+            <!-- Calendar Widget -->
             <section class="widget calendar-widget">
-                <h4>October 2020</h4>
-                <div class="calendar">
-                    <div class="days">
-                        <span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span><span>Su</span>
-                    </div>
-                    <div class="dates">
-                        <!-- Dynamically add dates based on real calendar structure -->
-                        <span></span><span></span><span></span><span>1</span><span>2</span><span>3</span><span>4</span>
-                        <span>5</span><span>6</span><span>7</span><span class="active">8</span><span>9</span><span>10</span><span>11</span>
-                        <!-- Add the rest of the calendar dates -->
-                    </div>
-                </div>
-                <div class="events">
-                    <p><strong>8 AM</strong> Flag Ceremony</p>
-                    <p><strong>10 AM</strong> Submit Reports</p>
-                    <p><strong>10:30 AM</strong> Pickup Bins</p>
-                </div>
+                <h4>Event Calendar</h4>
+                <div id="calendar"></div>
             </section>
         </main>
     </div>
+
+    <!-- Fetch latest bottle count via AJAX -->
+    <script>
+        // Function to fetch the latest bottle count from the server
+        function fetchLatestBottleCount() {
+            fetch('get_bottle_count.php')  // Fetch data from the PHP endpoint
+                .then(response => response.text())  // Parse response as text
+                .then(data => {
+                    document.getElementById('bottle-count').innerText = data;  // Update the bottle count in the widget
+                })
+                .catch(error => {
+                    console.error('Error fetching latest bottle count:', error);
+                    document.getElementById('bottle-count').innerText = 'Error fetching data';  // Handle any errors
+                });
+        }
+
+        // Fetch bottle count immediately when the page loads
+        fetchLatestBottleCount();
+
+        // Set an interval to refresh the bottle count every 1 second (1000 milliseconds)
+        setInterval(fetchLatestBottleCount, 1000);
+    </script>
 
 </body>
 </html>
