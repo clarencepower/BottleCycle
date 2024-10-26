@@ -9,7 +9,7 @@ body {
     font-family: 'Arial', sans-serif;
     background: 
        
-        url('webbackground.jpg') no-repeat center center fixed; /* Background image */
+        url('drawable/webbackground.jpg') no-repeat center center fixed; /* Background image */
     background-size: cover; /* Ensures the background covers the entire area */
     color: #000;
     display: flex;

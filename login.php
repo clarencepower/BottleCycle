@@ -42,7 +42,7 @@ if(isset($_POST["submit"])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="logo.png">
+    <link rel="shortcut icon" type="x-icon" href="drawable/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
     <link rel="stylesheet" href="login-register.css">
@@ -50,7 +50,7 @@ if(isset($_POST["submit"])) {
 <body>
     <header>
         <div class="logo-container">
-            <img src="logo.png" alt="Bottle Cycle Logo" class="logo">
+            <img src="drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             <div class="brand-info">
                 <h1>BOTTLE CYCLE</h1>
                 <p>Smart Arduino Based Plastic Bottle Bin</p>

@@ -1,5 +1,5 @@
 <?php
-// Database connection settings
+// Database credentials
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -10,22 +10,31 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Check connection
 if ($conn->connect_error) {
-  die("Connection failed: " . $conn->connect_error);
+    die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if count is passed from ESP32
-if (isset($_GET['count'])) {
-  $bottle_counts = $_GET['count'];
+// Get data from ESP32
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Check if bottle_size and count fields are set
+    if (isset($_POST['bottle_size']) && isset($_POST['count'])) {
+        $bottle_size = $_POST['bottle_size'];
+        $count = (int)$_POST['count'];  // Ensure count is an integer
 
-  // Insert data into database
-  $sql = "INSERT INTO bottle_counts (count) VALUES ('$bottle_counts')";
-  if ($conn->query($sql) === TRUE) {
-    echo "New record created successfully";
-  } else {
-    echo "Error: " . $sql . "<br>" . $conn->error;
-  }
-} else {
-  echo "No data received!";
+        // Prepare and bind
+        $stmt = $conn->prepare("INSERT INTO bottle_data (bottle_size, count) VALUES (?, ?)");
+        $stmt->bind_param("si", $bottle_size, $count);
+
+        // Execute the query
+        if ($stmt->execute()) {
+            echo "Data inserted successfully";
+        } else {
+            echo "Error: " . $stmt->error;
+        }
+
+        $stmt->close();
+    } else {
+        echo "Error: Missing bottle_size or count data";
+    }
 }
 
 $conn->close();
