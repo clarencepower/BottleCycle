@@ -13,7 +13,6 @@
     <!-- FullCalendar CSS and JS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.js'></script>
-
 </head>
 <body>
 
@@ -51,10 +50,21 @@
             </section>
 
             <!-- Bottles Collected Widget -->
-            <section class="widget time-widget">
-                <div class="bottles">
-                    <h4>Total Bottles Collected</h4>
-                    <p id="bottle-count">Loading...</p>
+            <section class="widget bottle-count-widget">
+                <h4>Bottles Collected</h4>
+                <div class="bottle-size">
+                    <div class="bottle-box">
+                        <h5>Small Bottles</h5>
+                        <p id="small-bottle-count">Loading...</p>
+                    </div>
+                    <div class="bottle-box">
+                        <h5>Medium Bottles</h5>
+                        <p id="medium-bottle-count">Loading...</p>
+                    </div>
+                    <div class="bottle-box">
+                        <h5>Large Bottles</h5>
+                        <p id="large-bottle-count">Loading...</p>
+                    </div>
                 </div>
             </section>
 
@@ -64,19 +74,20 @@
                 <div class="notification">
                     <p><strong>Bottle Bin AST-01 Bottle Bin in Asturias is Almost Full</strong></p>
                     <p>"Please prepare to empty it soon to avoid overflow"</p>
-                    <p>Location: https://maps.app.goo.gl/3LV76YYWDbxarrKq6</p>
+                    <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
                 </div>
                 <div class="notification">
                     <p><strong>Bottle Bin AST-01 in Asturias is Full</strong></p>
                     <p>"Immediate emptying is required to maintain cleanliness"</p>
-                    <p>Location: https://maps.app.goo.gl/3LV76YYWDbxarrKq6</p>
+                    <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
                 </div>
             </section>
 
             <!-- Calendar Widget -->
             <section class="widget calendar-widget">
-                <h4>Event Calendar</h4>
-                <div id="calendar"></div>
+                <h4>Philippines Event Calendar</h4>
+                <iframe src="https://calendar.google.com/calendar/embed?src=en.philippines%23holiday%40group.v.calendar.google.com&ctz=Asia%2FManila"
+                        style="border: 0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
             </section>
         </main>
     </div>
@@ -85,14 +96,18 @@
     <script>
         // Function to fetch the latest bottle count from the server
         function fetchLatestBottleCount() {
-            fetch('get_bottle_count.php')  // Fetch data from the PHP endpoint
-                .then(response => response.text())  // Parse response as text
+            fetch('get_bottle_count.php')
+                .then(response => response.json()) // Parse response as JSON
                 .then(data => {
-                    document.getElementById('bottle-count').innerText = data;  // Update the bottle count in the widget
+                    document.getElementById('small-bottle-count').innerText = data.small || 0;
+                    document.getElementById('medium-bottle-count').innerText = data.medium || 0;
+                    document.getElementById('large-bottle-count').innerText = data.large || 0;
                 })
                 .catch(error => {
                     console.error('Error fetching latest bottle count:', error);
-                    document.getElementById('bottle-count').innerText = 'Error fetching data';  // Handle any errors
+                    document.getElementById('small-bottle-count').innerText = 'Error';
+                    document.getElementById('medium-bottle-count').innerText = 'Error';
+                    document.getElementById('large-bottle-count').innerText = 'Error';
                 });
         }
 

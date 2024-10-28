@@ -18,7 +18,7 @@ if (isset($_POST['count'])) {
     $count = $_POST['count'];
 
     // Insert count into bottle_counter
-    $sql = "INSERT INTO bottle_counter (count) VALUES ('$count')";
+    $sql = "INSERT INTO bottle_counts (count) VALUES ('$count')";
 
     if ($conn->query($sql) === TRUE) {
         echo "New record created successfully";

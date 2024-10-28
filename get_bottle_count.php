@@ -1,29 +1,30 @@
 <?php
-// Database connection settings
 $servername = "localhost";
-$username = "root";
-$password = "";
+$username = "root";  // Replace with your database username
+$password = "";      // Replace with your database password
 $dbname = "bottlecycle-ctu";
 
-// Create connection
+// Connect to the database
 $conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch the most recent count from the database based on the latest ID
-$sql = "SELECT count FROM bottle_counts ORDER BY id DESC LIMIT 1";
-$result = $conn->query($sql);
+// Fetch latest counts for each bottle size
+$sqlSmall = "SELECT count FROM small_bottle_counts ORDER BY id DESC LIMIT 1";
+$sqlMedium = "SELECT count FROM medium_bottle_counts ORDER BY id DESC LIMIT 1";
+$sqlLarge = "SELECT count FROM large_bottle_counts ORDER BY id DESC LIMIT 1";
 
-if ($result->num_rows > 0) {
-    $row = $result->fetch_assoc();
-    $latestCount = $row['count'];
-    echo $latestCount;
-} else {
-    echo "0"; // If no data found, return 0
-}
+$smallCount = $conn->query($sqlSmall)->fetch_assoc()['count'] ?? 0;
+$mediumCount = $conn->query($sqlMedium)->fetch_assoc()['count'] ?? 0;
+$largeCount = $conn->query($sqlLarge)->fetch_assoc()['count'] ?? 0;
 
 $conn->close();
+
+// Return data in JSON format
+echo json_encode([
+    'small' => $smallCount,
+    'medium' => $mediumCount,
+    'large' => $largeCount
+]);
 ?>
