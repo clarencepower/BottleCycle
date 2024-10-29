@@ -32,7 +32,7 @@
                     <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
                     <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
                     <li><a href="#"><i class="fas fa-trash-alt"></i> Bottle Bin</a></li>
-                    <li><a href="#"><i class="fas fa-file-alt"></i> Reports</a></li>
+                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
                     <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 </ul>
             </nav>
@@ -68,18 +68,21 @@
                 </div>
             </section>
 
-            <!-- Notifications -->
+            <!-- Notifications Widget -->
             <section class="widget notification-widget">
                 <h4>Notification</h4>
-                <div class="notification">
-                    <p><strong>Bottle Bin AST-01 Bottle Bin in Asturias is Almost Full</strong></p>
-                    <p>"Please prepare to empty it soon to avoid overflow"</p>
-                    <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
-                </div>
-                <div class="notification">
-                    <p><strong>Bottle Bin AST-01 in Asturias is Full</strong></p>
-                    <p>"Immediate emptying is required to maintain cleanliness"</p>
-                    <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
+                <div id="notification-container">
+                    <!-- Existing notifications -->
+                    <div class="notification">
+                        <p><strong>Bottle Bin AST-01 Bottle Bin in Asturias is Almost Full</strong></p>
+                        <p>"Please prepare to empty it soon to avoid overflow"</p>
+                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
+                    </div>
+                    <div class="notification">
+                        <p><strong>Bottle Bin AST-01 in Asturias is Full</strong></p>
+                        <p>"Immediate emptying is required to maintain cleanliness"</p>
+                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
+                    </div>
                 </div>
             </section>
 
@@ -89,11 +92,20 @@
                 <iframe src="https://calendar.google.com/calendar/embed?src=en.philippines%23holiday%40group.v.calendar.google.com&ctz=Asia%2FManila"
                         style="border: 0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
             </section>
+            
+            <!-- Notification Icon with Badge -->
+            <div class="notification-icon">
+                <i class="fas fa-bell"></i>
+                <span id="notification-badge" class="badge">0</span>
+            </div>
+
         </main>
     </div>
 
-    <!-- Fetch latest bottle count via AJAX -->
+    <!-- Fetch latest bottle count and bin status via AJAX -->
     <script>
+        let notificationCount = 0;
+
         // Function to fetch the latest bottle count from the server
         function fetchLatestBottleCount() {
             fetch('get_bottle_count.php')
@@ -111,12 +123,41 @@
                 });
         }
 
-        // Fetch bottle count immediately when the page loads
+        // Function to fetch the latest bin status and update notification
+        function fetchBinStatus() {
+            fetch('get_bin_status.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === "success" && data.is_full === 1) {
+                        // Increment notification count if bin is full
+                        notificationCount++;
+                        document.getElementById('notification-badge').innerText = notificationCount;
+                        document.getElementById('notification-badge').style.display = 'inline';
+                        displayNotification("Your bin is full. Please empty it to continue collecting bottles.");
+                    }
+                })
+                .catch(error => console.error('Error fetching bin status:', error));
+        }
+
+        // Function to display the notification on the dashboard
+        function displayNotification(message) {
+            const notificationContainer = document.getElementById('notification-container');
+            const newNotification = document.createElement('div');
+            newNotification.classList.add('notification');
+            newNotification.innerHTML = `<p><strong>${message}</strong></p>`;
+            notificationContainer.appendChild(newNotification);
+        }
+
+        // Fetch bottle count and bin status immediately when the page loads
         fetchLatestBottleCount();
+        fetchBinStatus();
 
-        // Set an interval to refresh the bottle count every 1 second (1000 milliseconds)
+        // Set intervals to refresh the bottle count every 1 second for real-time updates
         setInterval(fetchLatestBottleCount, 1000);
-    </script>
 
+        // Refresh bin status every 1 minute (60000 milliseconds)
+        setInterval(fetchBinStatus, 60000);
+    </script>
+    
 </body>
 </html>
