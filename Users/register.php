@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require '../config.php';
 
 if(isset($_POST["submit"])) {
     $email = $_POST["email"];
@@ -24,8 +24,9 @@ if(isset($_POST["submit"])) {
 
             if($query->execute()) {
                 echo "<script>
-                        alert('Registration Successful');
-                        window.location.href = 'login.php'; // Redirect to login page
+                        document.addEventListener('DOMContentLoaded', function() {
+                            showSuccessPopover();
+                        });
                       </script>";
             } else {
                 echo "<script> alert('Error during registration'); </script>";
@@ -36,43 +37,109 @@ if(isset($_POST["submit"])) {
     }
 }
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="drawable/logo.png">
+    <link rel="shortcut icon" type="x-icon" href="../drawable/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
-    <link rel="stylesheet" href="css/login-register.css">
-    <script>
-        function validateForm() {
-            var password = document.getElementById("password").value;
-            var confirm_password = document.getElementById("confirm_password").value;
-
-            if (password !== confirm_password) {
-                alert("Passwords do not match.");
-                return false;
-            }
-            return true;
+    <link rel="stylesheet" href="../css/login-register.css">
+    <style>
+               body {
+            font-family: 'Arial', sans-serif;
+            background: url('../drawable/webbackground.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #000;
         }
-    </script>
+        nav {
+    margin-left: auto;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    padding: left 30px;
+}
+
+.nav-links li {
+    margin-left: 60px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #002409;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+
+        /* Popover Styling */
+        .popover {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .popover.show {
+            display: block;
+            animation: fadeIn 0.10s ease-in-out;
+        }
+
+        /* Checkmark Animation */
+        .checkmark {
+            font-size: 50px;
+            color: green;
+            animation: bounce 1s ease-in-out;
+        }
+
+        /* Success message styling */
+        .success-message {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: scale(0.9);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+    </style>
 </head>
 <body>
     <header>
         <div class="logo-container">
-            <img src="logo.png" alt="Bottle Cycle Logo" class="logo">
+            <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             <div class="brand-info">
                 <h1>BOTTLE CYCLE</h1>
-                <p>Smart Arduino Based Plastic Bottle Bin</p>
+                <p>Smart Plastic Bottle Bin</p>
             </div>
         </div>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="aboutus.html">About Us</a></li>
-                <li><a href="loginpage.html">Log in</a></li>
+                <li><a href="../Public/index.html">Home</a></li>
+                <li><a href="../Public/aboutus.html">About Us</a></li>
+                <li><a href="login.php">Log in</a></li>
             </ul>
         </nav>
     </header>
@@ -114,5 +181,35 @@ if(isset($_POST["submit"])) {
             </div>
         </section>
     </main>
+
+    <!-- Popover for Successful Registration -->
+    <div id="success-popover" class="popover">
+        <div class="checkmark">✔</div>
+        <div class="success-message">Successfully Registered!</div>
+    </div>
+
+    <script>
+        function showSuccessPopover() {
+            const popover = document.getElementById("success-popover");
+            popover.classList.add("show");
+
+            // Hide the popover after 2 seconds and redirect to login page
+            setTimeout(() => {
+                popover.classList.remove("show");
+                window.location.href = 'login.php'; // Redirect to login page
+            }, 2000);
+        }
+
+        function validateForm() {
+            var password = document.getElementById("password").value;
+            var confirm_password = document.getElementById("confirm_password").value;
+
+            if (password !== confirm_password) {
+                alert("Passwords do not match.");
+                return false;
+            }
+            return true;
+        }
+    </script>
 </body>
 </html>

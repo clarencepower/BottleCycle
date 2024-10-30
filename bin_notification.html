@@ -33,6 +33,27 @@
             color: #333;
             margin-top: 20px;
         }
+         /* Styling for the history table */
+         table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            margin-top: 50px;
+        }
     </style>
 </head>
 <body>
@@ -41,6 +62,50 @@
         <span class="badge" id="notification-badge">1</span>
     </div>
     <div class="notification-message" id="notification-message"></div>
+    <div class="container">
+        <h2>Bin Full Notification History</h2>
+        <table id="history-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+                <!-- Records will be dynamically populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to fetch and display bin history
+        function fetchBinHistory() {
+            fetch('get_bin_history.php')
+                .then(response => response.json())
+                .then(data => {
+                    const historyBody = document.getElementById('history-body');
+                    historyBody.innerHTML = ''; // Clear the table body
+
+                    data.forEach(record => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${record.id}</td>
+                            <td>${record.is_full == 1 ? "Bin Full" : "Not Full"}</td>
+                            <td>${record.timestamp}</td>
+                        `;
+                        historyBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error('Error fetching bin history:', error));
+        }
+
+        // Fetch the bin history when the page loads
+        fetchBinHistory();
+
+        // Optionally, refresh the history every minute
+        setInterval(fetchBinHistory, 60000);
+    </script>
 
     <script>
         // Function to check the bin status from the server

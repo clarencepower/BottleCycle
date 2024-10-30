@@ -1,5 +1,5 @@
 <?php
-require 'config.php';
+require '../config.php';
 
 // Check if a session is already started before calling session_start()
 if (session_status() == PHP_SESSION_NONE) {
@@ -42,24 +42,56 @@ if(isset($_POST["submit"])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <link rel="shortcut icon" type="x-icon" href="drawable/logo.png">
+    <link rel="shortcut icon" type="x-icon" href="../drawable/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bottle Cycle</title>
-    <link rel="stylesheet" href="login-register.css">
+    <link rel="stylesheet" href="../css/login-register.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: url('../drawable/webbackground.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #000;
+        }
+        nav {
+    margin-left: auto;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    padding: left 30px;
+}
+
+.nav-links li {
+    margin-left: 60px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #002409;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+        </style>
+    
 </head>
 <body>
     <header>
         <div class="logo-container">
-            <img src="drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
+            <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             <div class="brand-info">
                 <h1>BOTTLE CYCLE</h1>
-                <p>Smart Arduino Based Plastic Bottle Bin</p>
+                <p>Smart  Plastic Bottle Bin</p>
             </div>
         </div>
         <nav>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="aboutus.html">About Us</a></li>
+                <li><a href="../Public/index.html">Home</a></li>
+                <li><a href="../Public/aboutus.html">About Us</a></li>
                 <li><a href="login.php">Log in</a></li>
             </ul>
         </nav>
@@ -89,7 +121,7 @@ if(isset($_POST["submit"])) {
                     <button type="submit" name="submit" class="login-button">Login</button>
                 </form>
 
-                <a href="register.php" class="register-link">Register Account</a>
+                <a href="../Users/register.php" class="register-link">Register Account</a>
             </div>
         </section>
     </main>

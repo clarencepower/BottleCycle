@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="x-icon" href="../drawable/logo.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bottle Cycle</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        /* Style for falling leaves */
+        .leaf {
+            position: fixed;
+            top: -10vh; /* Start slightly above the viewport */
+            width: 25px;
+            height: 20px;
+            background-image: url('../drawable/leaf.png'); /* Add a leaf image in your drawable folder */
+            background-size: cover;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(110vh) rotate(360deg); /* Fall slightly beyond the viewport */
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
+            <div class="brand-info">
+                <h1>BOTTLE CYCLE</h1>
+                <p>Smart Plastic Bottle Bin</p>
+            </div>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="aboutus.html">About Us</a></li>
+                <li><a href="../Users/login.php">Log in</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-section">
+            <div class="hero-text">
+                <h2>SAVE THE EARTH</h2>
+                <p>REDUCE AND RECYCLE</p>
+            </div>
+            <div class="bin-image">
+                <img src="../drawable/trashbinlogo.png" alt="Plastic Bottle Bin">
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // JavaScript to create falling leaves
+        function createLeaf() {
+            const leaf = document.createElement('div');
+            leaf.classList.add('leaf');
+            leaf.style.left = `${Math.random() * 100}vw`;
+            leaf.style.animationDuration = `${Math.random() * 5 + 5}s`; // Random duration between 5s and 10s
+            document.body.appendChild(leaf);
+
+            // Remove leaf after animation ends to prevent buildup
+            leaf.addEventListener('animationend', () => {
+                leaf.remove();
+            });
+        }
+
+        // Create leaves at slower intervals for fewer leaves
+        setInterval(createLeaf, 2000); // One leaf every 3 seconds
+    </script>
+</body>
+</html>

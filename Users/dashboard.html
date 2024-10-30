@@ -5,7 +5,7 @@
     <link rel="shortcut icon" type="x-icon" href="drawable/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="../css/dashboard.css">
     
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -13,6 +13,177 @@
     <!-- FullCalendar CSS and JS -->
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.css' rel='stylesheet' />
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.js'></script>
+
+    <style>
+        /* Global Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            height: 100vh;
+            background: #f4f7fc;
+            color: #333;
+        }
+
+        .dashboard {
+            display: flex;
+            width: 100%;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 250px;
+            background-color: #1e2a38;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            width: 80px;
+            height: auto;
+        }
+
+        .brand-info h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #ffdd57;
+        }
+
+        .brand-info p {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .nav-links {
+            list-style: none;
+            width: 100%;
+        }
+
+        .nav-links li {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #b0c4de;
+            font-size: 16px;
+            padding: 15px 20px;
+            display: block;
+            width: 100%;
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: #ffdd57;
+            color: #1e2a38;
+        }
+
+        /* Main Content Styling */
+        .content {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        /* Widget Styling */
+        .widget {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1 1 300px;
+            max-width: 100%;
+            min-width: 250px;
+        }
+
+        .widget h4, .widget h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        /* Specific Widget Styling */
+        .time-widget {
+            text-align: center;
+        }
+
+        .time-widget h3 {
+            font-size: 36px;
+            color: #ffdd57;
+        }
+
+        .bottle-count-widget .bottle-box {
+            background-color: #f7f9fc;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .bottle-count-widget .bottle-box h5 {
+            color: #1e2a38;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .notification-widget .notification {
+            background-color: #ffebcc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .notification-widget .notification p {
+            margin-bottom: 5px;
+        }
+
+        .calendar-widget iframe {
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Notification Icon with Badge */
+        .notification-icon {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #ffdd57;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .badge {
+            background-color: #ff3e3e;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 12px;
+            display: inline-block;
+        }
+    </style>
 </head>
 <body>
 
@@ -72,9 +243,8 @@
             <section class="widget notification-widget">
                 <h4>Notification</h4>
                 <div id="notification-container">
-                    <!-- Existing notifications -->
                     <div class="notification">
-                        <p><strong>Bottle Bin AST-01 Bottle Bin in Asturias is Almost Full</strong></p>
+                        <p><strong>Bottle Bin AST-01 in Asturias is Almost Full</strong></p>
                         <p>"Please prepare to empty it soon to avoid overflow"</p>
                         <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
                     </div>
@@ -104,12 +274,12 @@
 
     <!-- Fetch latest bottle count and bin status via AJAX -->
     <script>
+        // JavaScript to fetch data and update UI dynamically
         let notificationCount = 0;
 
-        // Function to fetch the latest bottle count from the server
         function fetchLatestBottleCount() {
             fetch('get_bottle_count.php')
-                .then(response => response.json()) // Parse response as JSON
+                .then(response => response.json())
                 .then(data => {
                     document.getElementById('small-bottle-count').innerText = data.small || 0;
                     document.getElementById('medium-bottle-count').innerText = data.medium || 0;
@@ -123,13 +293,11 @@
                 });
         }
 
-        // Function to fetch the latest bin status and update notification
         function fetchBinStatus() {
             fetch('get_bin_status.php')
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === "success" && data.is_full === 1) {
-                        // Increment notification count if bin is full
                         notificationCount++;
                         document.getElementById('notification-badge').innerText = notificationCount;
                         document.getElementById('notification-badge').style.display = 'inline';
@@ -139,7 +307,6 @@
                 .catch(error => console.error('Error fetching bin status:', error));
         }
 
-        // Function to display the notification on the dashboard
         function displayNotification(message) {
             const notificationContainer = document.getElementById('notification-container');
             const newNotification = document.createElement('div');
@@ -148,14 +315,10 @@
             notificationContainer.appendChild(newNotification);
         }
 
-        // Fetch bottle count and bin status immediately when the page loads
         fetchLatestBottleCount();
         fetchBinStatus();
 
-        // Set intervals to refresh the bottle count every 1 second for real-time updates
         setInterval(fetchLatestBottleCount, 1000);
-
-        // Refresh bin status every 1 minute (60000 milliseconds)
         setInterval(fetchBinStatus, 60000);
     </script>
     

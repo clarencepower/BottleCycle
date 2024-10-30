@@ -1,4 +1,4 @@
-/* General reset for margin and padding */
+* General reset for margin and padding */
 * {
     margin: 0;
     padding: 0;
@@ -8,9 +8,9 @@
 body {
     font-family: 'Arial', sans-serif;
     background: 
-        
-        url('webbackground.jpg') no-repeat center center fixed;
-    background-size: cover;
+       
+        url('drawable/webbackground.jpg') no-repeat center center fixed; /* Background image */
+    background-size: cover; /* Ensures the background covers the entire area */
     color: #000;
     display: flex;
     flex-direction: column;
@@ -54,15 +54,16 @@ nav {
 .nav-links {
     display: flex;
     list-style: none;
+    padding: left 30px;
 }
 
 .nav-links li {
-    margin-left: 20px;
+    margin-left: 60px;
 }
 
 .nav-links a {
     text-decoration: none;
-    color: #000;
+    color: #002409;
     font-size: 16px;
     font-weight: bold;
 }
