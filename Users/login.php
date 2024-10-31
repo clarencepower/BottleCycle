@@ -53,29 +53,8 @@ if(isset($_POST["submit"])) {
             font-family: 'Arial', sans-serif;
             background: url('../drawable/webbackground.jpg') no-repeat center center fixed;
             background-size: cover;
-            color: #000;
+            
         }
-        nav {
-    margin-left: auto;
-}
-
-.nav-links {
-    display: flex;
-    list-style: none;
-    padding: left 30px;
-}
-
-.nav-links li {
-    margin-left: 60px;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: #002409;
-    font-size: 16px;
-    font-weight: bold;
-}
-
         </style>
     
 </head>

@@ -26,7 +26,10 @@
             font-family: 'Arial', sans-serif;
             display: flex;
             height: 100vh;
-            background: #f4f7fc;
+            background-image: url('../drawable/webbackground.jpg'); /* Set the background image */
+            background-size: cover; /* Cover the entire background */
+            background-position: center; /* Center the background image */
+            background-repeat: no-repeat; /* Prevent repeating of the background image */
             color: #333;
         }
 
@@ -38,60 +41,84 @@
         /* Sidebar Styling */
         .sidebar {
             width: 250px;
-            background-color: #1e2a38;
-            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5); /* Slightly transparent for a subtle effect */
+            color: white;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 20px;
+            transition: width 0.3s ease; /* Smooth transition */
+        }
+
+        .sidebar.collapsed {
+            width: 60px; /* Collapsed width to show only icons */
         }
 
         .logo-container {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            transition: opacity 0.3s ease;
         }
 
         .logo {
-            width: 80px;
+            width: 40px; /* Adjusted for visibility when collapsed */
             height: auto;
+            margin-right: 0; /* Center logo in collapsed view */
         }
 
-        .brand-info h1 {
-            font-size: 20px;
-            font-weight: bold;
-            margin-top: 10px;
-            color: #ffdd57;
+        /* Hide text when sidebar is collapsed */
+        .brand-info h1,
+        .nav-links a span {
+            display: inline; /* Show by default */
+            transition: opacity 0.3s ease;
         }
 
-        .brand-info p {
-            font-size: 12px;
-            color: #ccc;
+        .sidebar.collapsed .brand-info h1,
+        .sidebar.collapsed .nav-links a span {
+            display: none; /* Hide when collapsed */
         }
 
+        /* Navigation Links */
         .nav-links {
             list-style: none;
             width: 100%;
+            padding: 0;
         }
 
         .nav-links li {
-            width: 100%;
-            margin-bottom: 15px;
+            margin: 10px 0;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: #b0c4de;
+            color: white;
             font-size: 16px;
-            padding: 15px 20px;
-            display: block;
-            width: 100%;
-            border-radius: 4px;
-            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .nav-links a i {
+            font-size: 20px;
+            margin-right: 15px;
         }
 
         .nav-links a:hover {
-            background-color: #ffdd57;
-            color: #1e2a38;
+            background-color: rgba(0, 128, 0, 0.3); /* Transparent green on hover */
+            color: white; /* White text on hover */
+        }
+
+        .sidebar.collapsed .nav-links a {
+            justify-content: center;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-links a i {
+            margin-right: 0; /* Center icons in collapsed state */
         }
 
         /* Main Content Styling */
@@ -104,20 +131,22 @@
             overflow-y: auto;
         }
 
-        /* Widget Styling */
+        /* Widget Styling with Glassmorphism */
         .widget {
-            background-color: #fff;
+            background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+            backdrop-filter: blur(10px); /* Background blur */
+            border-radius: 15px; /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Shadow for depth */
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             flex: 1 1 300px;
             max-width: 100%;
             min-width: 250px;
+            border: 1px solid rgba(255, 255, 255, 0.5); /* Optional: border for effect */
         }
 
         .widget h4, .widget h2 {
             font-size: 18px;
-            color: #333;
+            color: #002f05;
             margin-bottom: 15px;
         }
 
@@ -128,11 +157,39 @@
 
         .time-widget h3 {
             font-size: 36px;
-            color: #ffdd57;
+            color: #005709;
+            animation: pulse 1.5s infinite; /* Adding pulse animation */
+        }
+
+        .weather {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .weather img {
+            margin-bottom: 10px;
+            width: 50px;
+            height: 50px;
+            animation: bounce 1s infinite; /* Adding bounce animation */
+        }
+
+        #temperature {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #weather-description {
+            font-size: 16px;
+            color: #666;
+            text-transform: capitalize;
         }
 
         .bottle-count-widget .bottle-box {
-            background-color: #f7f9fc;
+            background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent for glass effect */
+            backdrop-filter: blur(10px); /* Blur for glass effect */
             padding: 15px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -141,13 +198,13 @@
         }
 
         .bottle-count-widget .bottle-box h5 {
-            color: #1e2a38;
+            color: #002f05;
             font-size: 16px;
             margin-bottom: 5px;
         }
 
         .notification-widget .notification {
-            background-color: #ffebcc;
+            background-color: rgba(255, 235, 204, 0.9); /* Light semi-transparent background */
             padding: 15px;
             border-radius: 8px;
             margin-top: 10px;
@@ -183,28 +240,49 @@
             font-size: 12px;
             display: inline-block;
         }
+
+        /* Animations */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
     </style>
 </head>
-<body>
+<body class="bod">
 
     <div class="dashboard">
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar collapsed">
             <div class="logo-container">
-                <img src="logo.png" alt="Bottle Cycle Logo" class="logo">
-                <div class="brand-info">
-                    <h1>BOTTLE CYCLE</h1>
-                    <p>Smart Arduino Based Plastic Bottle Bin</p>
-                </div>
+                <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             </div>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
-                    <li><a href="#"><i class="fas fa-user"></i> Profile</a></li>
-                    <li><a href="#"><i class="fas fa-trash-alt"></i> Bottle Bin</a></li>
-                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> Reports</a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    <li><a href="#"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                    <li><a href="#"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
+                    <li><a href="#"><i class="fas fa-user"></i> <span>Profile</span></a></li>
+                    <li><a href="#"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
+                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
@@ -217,13 +295,20 @@
                 <div class="time">
                     <h3 id="current-time">Loading...</h3>
                     <p id="day-of-week">Loading...</p>
+                    <p id="location">Location: Loading...</p> <!-- Added Location -->
+                </div>
+                <div class="weather">
+                    <img id="weather-icon" src="" alt="Weather Icon" style="display: none;">
+                    <p id="temperature">Loading...</p>
+                    <p id="weather-description">Loading...</p>
                 </div>
             </section>
 
             <!-- Bottles Collected Widget -->
             <section class="widget bottle-count-widget">
-                <h4>Bottles Collected</h4>
+                
                 <div class="bottle-size">
+                    <h4>Bottles Collected</h4>
                     <div class="bottle-box">
                         <h5>Small Bottles</h5>
                         <p id="small-bottle-count">Loading...</p>
@@ -268,59 +353,89 @@
                 <i class="fas fa-bell"></i>
                 <span id="notification-badge" class="badge">0</span>
             </div>
-
         </main>
     </div>
 
-    <!-- Fetch latest bottle count and bin status via AJAX -->
+    <!-- JavaScript for Sidebar Hover Effect and Time/Weather -->
     <script>
-        // JavaScript to fetch data and update UI dynamically
-        let notificationCount = 0;
+        const sidebar = document.querySelector('.sidebar');
 
-        function fetchLatestBottleCount() {
-            fetch('get_bottle_count.php')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('small-bottle-count').innerText = data.small || 0;
-                    document.getElementById('medium-bottle-count').innerText = data.medium || 0;
-                    document.getElementById('large-bottle-count').innerText = data.large || 0;
-                })
-                .catch(error => {
-                    console.error('Error fetching latest bottle count:', error);
-                    document.getElementById('small-bottle-count').innerText = 'Error';
-                    document.getElementById('medium-bottle-count').innerText = 'Error';
-                    document.getElementById('large-bottle-count').innerText = 'Error';
+        // Expand sidebar on hover
+        sidebar.addEventListener('mouseenter', () => {
+            sidebar.classList.remove('collapsed');
+        });
+
+        // Collapse sidebar when the mouse leaves
+        sidebar.addEventListener('mouseleave', () => {
+            sidebar.classList.add('collapsed');
+        });
+
+        // Display Philippine Time
+        function updatePhilippineTime() {
+            const options = { timeZone: 'Asia/Manila', hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' };
+            const formatter = new Intl.DateTimeFormat('en-US', options);
+            const now = new Date();
+            document.getElementById('current-time').textContent = formatter.format(now);
+
+            const dayOptions = { weekday: 'long', timeZone: 'Asia/Manila' };
+            const dayFormatter = new Intl.DateTimeFormat('en-US', dayOptions);
+            document.getElementById('day-of-week').textContent = dayFormatter.format(now);
+        }
+
+        setInterval(updatePhilippineTime, 1000); // Update time every second
+
+        // Get user's location and fetch weather data
+        async function getLocationAndFetchWeather() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+
+                    // Get location name using reverse geocoding
+                    const locationResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=YOUR_API_KEY&units=metric`);
+                    const locationData = await locationResponse.json();
+                    document.getElementById('location').textContent = `Location: ${locationData.name}`;
+
+                    // Fetch weather data for user's location
+                    fetchWeather(lat, lon);
+                }, (error) => {
+                    console.error("Geolocation error:", error);
+                    document.getElementById('location').textContent = 'Location: Unable to retrieve';
                 });
+            } else {
+                document.getElementById('location').textContent = 'Geolocation not supported';
+            }
         }
 
-        function fetchBinStatus() {
-            fetch('get_bin_status.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.status === "success" && data.is_full === 1) {
-                        notificationCount++;
-                        document.getElementById('notification-badge').innerText = notificationCount;
-                        document.getElementById('notification-badge').style.display = 'inline';
-                        displayNotification("Your bin is full. Please empty it to continue collecting bottles.");
-                    }
-                })
-                .catch(error => console.error('Error fetching bin status:', error));
+        // Fetch weather data for specific coordinates
+        async function fetchWeather(lat, lon) {
+            const apiKey = '7e193e5c921b6f40aa3afd8dc13273eb'; // Replace with your OpenWeather API key
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // Update weather details
+                const temp = data.main.temp;
+                const weatherDescription = data.weather[0].description;
+                const iconCode = data.weather[0].icon;
+                const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+
+                document.getElementById('temperature').textContent = `${temp}°C`;
+                document.getElementById('weather-description').textContent = weatherDescription.charAt(0).toUpperCase() + weatherDescription.slice(1);
+                const weatherIcon = document.getElementById('weather-icon');
+                weatherIcon.src = iconUrl;
+                weatherIcon.style.display = 'inline';
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                document.getElementById('temperature').textContent = 'Unable to load weather data';
+                document.getElementById('weather-description').textContent = '';
+            }
         }
 
-        function displayNotification(message) {
-            const notificationContainer = document.getElementById('notification-container');
-            const newNotification = document.createElement('div');
-            newNotification.classList.add('notification');
-            newNotification.innerHTML = `<p><strong>${message}</strong></p>`;
-            notificationContainer.appendChild(newNotification);
-        }
-
-        fetchLatestBottleCount();
-        fetchBinStatus();
-
-        setInterval(fetchLatestBottleCount, 1000);
-        setInterval(fetchBinStatus, 60000);
+        getLocationAndFetchWeather(); // Get user's location and fetch weather
+        setInterval(getLocationAndFetchWeather, 600000); // Update weather every 10 minutes
     </script>
-    
 </body>
 </html>
