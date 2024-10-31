@@ -265,6 +265,150 @@
                 transform: translateY(-5px);
             }
         }
+       /* Add Bin Button */
+       .add-bin-btn {
+    padding: 10px 20px;
+    background-color: #015515;
+    color: white;
+    border: none;
+    border-radius: 112px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.add-bin-btn:hover {
+    background-color: #218838;
+}
+
+/* Modern Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    width: 100%;
+    max-width: 400px;
+    animation: slideDown 0.3s ease;
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+.close-btn {
+    float: right;
+    font-size: 18px;
+    color: #ff3333;
+    cursor: pointer;
+}
+
+h2 {
+    font-size: 24px;
+    color: #333333;
+    margin-bottom: 15px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    font-size: 14px;
+    color: #555555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #cccccc;
+    font-size: 14px;
+}
+
+.submit-btn {
+    width: 50%;
+    padding: 10px;
+    background-color: #015515;
+    color: white;
+    border: none;
+    border-radius: 112px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.submit-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Success Message Styling */
+.success-message {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: white;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    font-size: 16px;
+    opacity: 0;
+    animation: fadeInOut 3s forwards;
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        transform: translate(-50%, -60%);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+img{
+    height: 80px;
+    width: 80px;
+}
+.bin-container
+{
+   float: left;
+   
+}
+/* Style for .bin-container to align items horizontally */
+.bin-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows bins to wrap to the next line if they exceed container width */
+    gap: 15px; /* Spacing between each bin item */
+}
+
+.bin-item {
+    width: 120px; /* Set a fixed width for each bin item */
+    text-align: center;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
     </style>
 </head>
 <body class="bod">
@@ -291,70 +435,45 @@
         <main class="content">
             <!-- Time and Weather Widget -->
             <section class="widget time-widget">
-                <h2>Welcome</h2>
-                <div class="time">
-                    <h3 id="current-time">Loading...</h3>
-                    <p id="day-of-week">Loading...</p>
-                    <p id="location">Location: Loading...</p> <!-- Added Location -->
-                </div>
-                <div class="weather">
-                    <img id="weather-icon" src="" alt="Weather Icon" style="display: none;">
-                    <p id="temperature">Loading...</p>
-                    <p id="weather-description">Loading...</p>
-                </div>
-            </section>
+                <!-- Add Bin Button -->
 
-            <!-- Bottles Collected Widget -->
-            <section class="widget bottle-count-widget">
-                
-                <div class="bottle-size">
-                    <h4>Bottles Collected</h4>
-                    <div class="bottle-box">
-                        <h5>Small Bottles</h5>
-                        <p id="small-bottle-count">Loading...</p>
-                    </div>
-                    <div class="bottle-box">
-                        <h5>Medium Bottles</h5>
-                        <p id="medium-bottle-count">Loading...</p>
-                    </div>
-                    <div class="bottle-box">
-                        <h5>Large Bottles</h5>
-                        <p id="large-bottle-count">Loading...</p>
-                    </div>
-                </div>
-            </section>
+<!-- Add Bin Button -->
+<button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
 
-            <!-- Notifications Widget -->
-            <section class="widget notification-widget">
-                <h4>Notification</h4>
-                <div id="notification-container">
-                    <div class="notification">
-                        <p><strong>Bottle Bin AST-01 in Asturias is Almost Full</strong></p>
-                        <p>"Please prepare to empty it soon to avoid overflow"</p>
-                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
-                    </div>
-                    <div class="notification">
-                        <p><strong>Bottle Bin AST-01 in Asturias is Full</strong></p>
-                        <p>"Immediate emptying is required to maintain cleanliness"</p>
-                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Calendar Widget -->
-            <section class="widget calendar-widget">
-                <h4>Philippines Event Calendar</h4>
-                <iframe src="https://calendar.google.com/calendar/embed?src=en.philippines%23holiday%40group.v.calendar.google.com&ctz=Asia%2FManila"
-                        style="border: 0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
-            </section>
-            
-            <!-- Notification Icon with Badge -->
-            <div class="notification-icon">
-                <i class="fas fa-bell"></i>
-                <span id="notification-badge" class="badge">0</span>
+<!-- Modal for Add Bin Form -->
+<div id="addBinModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>Register New Bottle Bin</h2>
+        <form id="addBinForm">
+            <div class="form-group">
+                <label for="binCode">Bottle Bin Code:</label>
+                <input type="text" id="binCode" name="binCode" required>
             </div>
-        </main>
+            <div class="form-group">
+                <label for="binAddress">Bottle Bin Address:</label>
+                <input type="text" id="binAddress" name="binAddress" required>
+            </div>
+            <input type="hidden" id="labelStatus" name="labelStatus" value="default">
+            <button type="submit" class="submit-btn">Add Bin</button>
+        </form>
     </div>
+</div>
+
+<!-- Success Message -->
+<div id="successMessage" class="success-message">Bottle Bin Successfully Added!</div>
+
+
+<!-- Display Bins -->
+<div id="binContainer" class="bin-container">
+    <!-- Bin icons with details will appear here -->
+</div>
+                
+            </section>
+
+            
+
+          
 
     <!-- JavaScript for Sidebar Hover Effect and Time/Weather -->
     <script>
@@ -370,72 +489,93 @@
             sidebar.classList.add('collapsed');
         });
 
-        // Display Philippine Time
-        function updatePhilippineTime() {
-            const options = { timeZone: 'Asia/Manila', hour12: true, hour: 'numeric', minute: 'numeric', second: 'numeric' };
-            const formatter = new Intl.DateTimeFormat('en-US', options);
-            const now = new Date();
-            document.getElementById('current-time').textContent = formatter.format(now);
-
-            const dayOptions = { weekday: 'long', timeZone: 'Asia/Manila' };
-            const dayFormatter = new Intl.DateTimeFormat('en-US', dayOptions);
-            document.getElementById('day-of-week').textContent = dayFormatter.format(now);
-        }
-
-        setInterval(updatePhilippineTime, 1000); // Update time every second
-
-        // Get user's location and fetch weather data
-        async function getLocationAndFetchWeather() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-
-                    // Get location name using reverse geocoding
-                    const locationResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=YOUR_API_KEY&units=metric`);
-                    const locationData = await locationResponse.json();
-                    document.getElementById('location').textContent = `Location: ${locationData.name}`;
-
-                    // Fetch weather data for user's location
-                    fetchWeather(lat, lon);
-                }, (error) => {
-                    console.error("Geolocation error:", error);
-                    document.getElementById('location').textContent = 'Location: Unable to retrieve';
-                });
-            } else {
-                document.getElementById('location').textContent = 'Geolocation not supported';
-            }
-        }
-
-        // Fetch weather data for specific coordinates
-        async function fetchWeather(lat, lon) {
-            const apiKey = '7e193e5c921b6f40aa3afd8dc13273eb'; // Replace with your OpenWeather API key
-            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-
-            try {
-                const response = await fetch(url);
-                const data = await response.json();
-
-                // Update weather details
-                const temp = data.main.temp;
-                const weatherDescription = data.weather[0].description;
-                const iconCode = data.weather[0].icon;
-                const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-
-                document.getElementById('temperature').textContent = `${temp}°C`;
-                document.getElementById('weather-description').textContent = weatherDescription.charAt(0).toUpperCase() + weatherDescription.slice(1);
-                const weatherIcon = document.getElementById('weather-icon');
-                weatherIcon.src = iconUrl;
-                weatherIcon.style.display = 'inline';
-            } catch (error) {
-                console.error("Error fetching weather data:", error);
-                document.getElementById('temperature').textContent = 'Unable to load weather data';
-                document.getElementById('weather-description').textContent = '';
-            }
-        }
-
-        getLocationAndFetchWeather(); // Get user's location and fetch weather
-        setInterval(getLocationAndFetchWeather, 600000); // Update weather every 10 minutes
+    
     </script>
+    <script>
+        // JavaScript to handle modal and form submission
+        document.getElementById('addBinBtn').onclick = function () {
+            document.getElementById('addBinModal').style.display = 'block';
+        };
+        
+        document.querySelector('.close-btn').onclick = function () {
+            document.getElementById('addBinModal').style.display = 'none';
+        };
+        
+       // Handle form submission
+document.getElementById('addBinForm').onsubmit = function (event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('../bins/add_bin.php', {  // Updated path to include the bins folder
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log(data);  // Check for success or error message
+        document.getElementById('addBinModal').style.display = 'none';
+        loadBins();  // Reload the list of bins
+    })
+    .catch(error => console.error('Error:', error));
+};
+
+// Load bins on page load
+document.addEventListener('DOMContentLoaded', loadBins);
+
+function loadBins() {
+    fetch('../bins/get_bins.php')  // Updated path to include the bins folder
+        .then(response => response.json())
+        .then(data => {
+            const binContainer = document.getElementById('binContainer');
+            binContainer.innerHTML = '';
+            data.forEach(bin => {
+                const binElement = document.createElement('div');
+                binElement.classList.add('bin-item');
+                binElement.innerHTML = `<img src="../drawable/trashbinlogo.png" alt="Bin Icon" style=”float: right>
+                                        <p>Code: ${bin.bin_code}</p>
+                                        <p>Address: ${bin.bin_address}</p>`;
+                binContainer.appendChild(binElement);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+}
+// JavaScript to handle modal and form submission
+document.getElementById('addBinBtn').onclick = function () {
+    document.getElementById('addBinModal').style.display = 'block';
+};
+
+document.querySelector('.close-btn').onclick = function () {
+    document.getElementById('addBinModal').style.display = 'none';
+};
+
+// Handle form submission
+document.getElementById('addBinForm').onsubmit = function (event) {
+    event.preventDefault();
+    const formData = new FormData(this);
+
+    fetch('../bins/add_bin.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(data => {
+        document.getElementById('addBinModal').style.display = 'none';
+        showSuccessMessage();
+        loadBins();  // Reload the list of bins
+    })
+    .catch(error => console.error('Error:', error));
+};
+
+// Show success message
+function showSuccessMessage() {
+    const successMessage = document.getElementById('successMessage');
+    successMessage.style.display = 'block';
+    setTimeout(() => {
+        successMessage.style.display = 'none';
+    }, 3000);  // Hide after 3 seconds
+}
+
+        </script>
+        
 </body>
 </html>
