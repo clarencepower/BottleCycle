@@ -1,53 +1,74 @@
-/* General Reset */
-* {
+ /* Global Styles */
+ * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-
-
-/* Dashboard Layout */
-.dashboard {
+body {
+    font-family: 'Arial', sans-serif;
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    background-image: url('../drawable/webbackground.jpg'); /* Set the background image */
+    background-size: cover; /* Cover the entire background */
+    background-position: center; /* Center the background image */
+    background-repeat: no-repeat; /* Prevent repeating of the background image */
+    color: #333;
 }
 
-/* Sidebar */
-.sidebar {
+.dashboard {
+    display: flex;
+    width: 100%;
+}
+
+ /* Sidebar Styling */
+ .sidebar {
     width: 250px;
-    background-color: #004d00;
+    background-color: rgba(0, 0, 0, 0.5); /* Slightly transparent for a subtle effect */
     color: white;
     padding: 20px;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    transition: width 0.3s ease; /* Smooth transition */
+}
+
+.sidebar.collapsed {
+    width: 60px; /* Collapsed width to show only icons */
+    overflow: visible; /* Ensures icons aren't hidden */
 }
 
 .logo-container {
     display: flex;
     align-items: center;
+    justify-content: center;
     margin-bottom: 20px;
+    transition: opacity 0.3s ease;
 }
 
 .logo {
-    width: 60px;
+    width: 40px; /* Adjusted for visibility when collapsed */
     height: auto;
-    margin-right: 15px;
+    margin-right: 0; /* Center logo in collapsed view */
 }
 
-.brand-info h1 {
-    font-size: 18px;
-    font-weight: bold;
+/* Hide text when sidebar is collapsed */
+.brand-info h1,
+.nav-links a span {
+    display: inline; /* Show by default */
+    transition: opacity 0.3s ease;
 }
 
-.brand-info p {
-    font-size: 12px;
-    color: #cfcfcf;
+.sidebar.collapsed .brand-info h1,
+.sidebar.collapsed .nav-links a span {
+    display: none; /* Hide when collapsed */
 }
 
+/* Navigation Links */
 .nav-links {
     list-style: none;
-    margin-top: 20px;
+    width: 100%;
+    padding: 0;
 }
 
 .nav-links li {
@@ -58,206 +79,185 @@
     text-decoration: none;
     color: white;
     font-size: 16px;
-    display: block;
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-links a i {
+    font-size: 20px;
+    margin-right: 15px;
+    transition: margin-right 0.3s ease; /* Smooth transition for icon alignment */
 }
 
 .nav-links a:hover {
-    background-color: #227a35;
-    padding: 10px;
-    border-radius: 8px;
+    background-color: rgba(0, 128, 0, 0.3); /* Transparent green on hover */
+    color: white; /* White text on hover */
 }
 
-/* Main Content */
-.content {
-    flex-grow: 1;
-    padding: 40px;
-    background: linear-gradient(to bottom right, #d7f0ad, #b2e57a);
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-gap: 20px;
-}
-
-/* Widget Styling */
-.widget {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.time-widget {
-    grid-column: span 2;
-}
-
-.time-widget h2 {
-    font-size: 32px;
-}
-
-.time h3 {
-    font-size: 48px;
-    margin-bottom: 10px;
-}
-
-.bottles h4 {
-    margin-top: 20px;
-    font-size: 24px;
-}
-
-.notification-widget h4 {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-.notification {
-    margin-bottom: 10px;
-}
-
-.notification p {
-    font-size: 14px;
-}
-
-/* Calendar Widget */
-.calendar-widget {
-    grid-column: span 1;
-}
-
-.calendar-widget h4 {
-    font-size: 24px;
-    margin-bottom: 10px;
-}
-
-.calendar {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    grid-gap: 10px;
-}
-
-.calendar .days {
-    font-weight: bold;
-}
-
-.calendar .dates span {
-    display: inline-block;
-    text-align: center;
-    padding: 5px;
-    border-radius: 4px;
-}
-
-.calendar .dates .active {
-    background-color: #227a35;
-    color: white;
-}
-
-.events p {
-    margin-top: 10px;
-    font-size: 14px;
-}
-/* Weather section styling */
-.weather {
-    margin-top: 20px;
-    text-align: center;
-}
-
-.weather-info {
-    display: flex;
+.sidebar.collapsed .nav-links a {
     justify-content: center;
-    align-items: center;
-}
-
-.weather-info img {
-    margin-right: 20px;
-}
-
-#temperature {
-    font-size: 36px;
-    font-weight: bold;
-}
-
-#weather-description {
-    font-size: 18px;
-    color: #666;
-}
-
-.bottle-count-widget {
-    display: flex;
-    justify-content: space-around;
-    padding: 10px;
-}
-
-.bottle-box {
-    border: 1px solid #ccc;
-    padding: 20px;
-    text-align: center;
-    width: 150px;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.bottle-box h5 {
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-.bottle-box p {
-    font-size: 18px;
-    color: #333;
-}
-.notification-icon {
-    position: relative;
-    display: inline-block;
-}
-
-.badge {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    padding: 5px 10px;
-    border-radius: 50%;
-    background: red;
-    color: white;
-    font-size: 12px;
-    display: none; /* Initially hidden */
-}
-/* Sidebar */
-.sidebar {
-    width: 250px;
-    background-color: #004d00;
-    color: white;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    transition: width 0.3s ease; /* Smooth transition */
-}
-
-.sidebar.collapsed {
-    width: 60px; /* Width when collapsed */
-}
-
-.sidebar .logo-container,
-.sidebar .brand-info,
-.sidebar .nav-links a {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-
-.sidebar.collapsed .logo-container,
-.sidebar.collapsed .brand-info,
-.sidebar.collapsed .nav-links a {
-    opacity: 0; /* Hide text and logos when collapsed */
-    pointer-events: none;
-}
-
-/* Adjust icon visibility */
-.sidebar .nav-links a i {
-    margin-right: 10px;
-}
-
-.sidebar.collapsed .nav-links a {
     text-align: center;
 }
 
 .sidebar.collapsed .nav-links a i {
-    margin-right: 0;
+    margin-right: 0; /* Center icons in collapsed state */
+}
+
+/* Main Content Styling */
+.content {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+
+/* Main Content Styling */
+.content {
+    flex: 1;
+    padding: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+/* Widget Styling with Glassmorphism */
+.widget {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent white background */
+    backdrop-filter: blur(10px); /* Background blur */
+    border-radius: 15px; /* Rounded corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    padding: 20px;
+    flex: 1 1 300px;
+    max-width: 100%;
+    min-width: 250px;
+    border: 1px solid rgba(255, 255, 255, 0.5); /* Optional: border for effect */
+}
+
+.widget h4, .widget h2 {
+    font-size: 18px;
+    color: #002f05;
+    margin-bottom: 15px;
+}
+
+/* Specific Widget Styling */
+.time-widget {
+    text-align: center;
+}
+
+.time-widget h3 {
+    font-size: 36px;
+    color: #005709;
+    animation: pulse 1.5s infinite; /* Adding pulse animation */
+}
+
+.weather {
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.weather img {
+    margin-bottom: 10px;
+    width: 50px;
+    height: 50px;
+    animation: bounce 1s infinite; /* Adding bounce animation */
+}
+
+#temperature {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+#weather-description {
+    font-size: 16px;
+    color: #666;
+    text-transform: capitalize;
+}
+
+.bottle-count-widget .bottle-box {
+    background-color: rgba(255, 255, 255, 0.2); /* Semi-transparent for glass effect */
+    backdrop-filter: blur(10px); /* Blur for glass effect */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 10px;
+    text-align: center;
+}
+
+.bottle-count-widget .bottle-box h5 {
+    color: #002f05;
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.notification-widget .notification {
+    background-color: rgba(255, 235, 204, 0.9); /* Light semi-transparent background */
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.notification-widget .notification p {
+    margin-bottom: 5px;
+}
+
+.calendar-widget iframe {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Notification Icon with Badge */
+.notification-icon {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    color: #ffdd57;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.badge {
+    background-color: #ff3e3e;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 50%;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
 }
