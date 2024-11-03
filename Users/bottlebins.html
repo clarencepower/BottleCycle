@@ -543,6 +543,94 @@ element.style {
             border-radius: 5px;
             margin-top: 10px;
         }
+        #map-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+        }
+
+        /* Position the Add Bin Button in the upper right corner */
+.add-bin-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    background-color: #015515;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.add-bin-btn:hover {
+    background-color: #218838;
+}
+
+/* Bin List Container */
+.bin-list-container {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 200px;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Button to toggle dropdown */
+.bin-list-btn {
+    width: 100%;
+    background-color: #005709;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Rotate icon when expanded */
+.bin-list-container.expanded .fa-chevron-down {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
+
+/* Dropdown list styling */
+.bin-list-items {
+    display: none;
+    max-height: 150px; /* Scrollable height */
+    overflow-y: auto;
+    background-color: white;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-top: 5px;
+    padding: 5px 10px;
+}
+
+/* Display list items when expanded */
+.bin-list-container.expanded .bin-list-items {
+    display: block;
+}
+
+.bin-list-item {
+    padding: 8px;
+    color: #005709;
+    font-weight: bold;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+}
+
+.bin-list-item:hover {
+    background-color: #f0f0f0;
+}
     </style>
 </head>
 <body class="bod">
@@ -570,12 +658,20 @@ element.style {
             <section class="widget time-widget">
                 <!-- Location Search Bar -->
                 <input type="text" id="location-search" placeholder="Search for location...">
+              <!-- Map Modal with Collapsible Bin List Icon -->
+              
+    <div id="map-container">
+        <div id="map"></div>
 
-                <!-- Map container within Time Widget -->
-                <div id="map"></div>
-
-                <!-- Add Bin Button -->
-                <button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
+        <!-- Bin List Overlay Icon in Upper Left Corner with Dropdown Style -->
+        <div class="bin-list-container">
+            <button class="bin-list-btn" id="toggleBinList">
+                Bottle Bin List <i class="fas fa-chevron-down"></i>
+            </button>
+            <div id="binList" class="bin-list-items"></div>
+        </div>
+        <button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
+    </div>
 
                 <!-- Add Bin Modal -->
                 <div id="addBinModal" class="modal">
@@ -591,7 +687,7 @@ element.style {
                                 <label for="binAddress">Bottle Bin Address:</label>
                                 <input type="text" id="binAddress" name="binAddress" required>
                             </div>
-                            <button type="button" id="setLocationBtn" class="add-bin-btn">Set Location</button>
+                           
                             <input type="hidden" id="latitude" name="latitude">
                             <input type="hidden" id="longitude" name="longitude">
                             <button type="submit" class="submit-btn">Add Bin</button>
@@ -612,15 +708,49 @@ element.style {
                     </div>
                 </div>
             </section>
-         
-            
-                
-        
+            <script>
+             // Select elements
+const binListContainer = document.querySelector('.bin-list-container');
+const toggleBinList = document.getElementById('toggleBinList');
+const binList = document.getElementById('binList');
 
-            
+// Toggle bin list visibility on button click
+toggleBinList.addEventListener('click', () => {
+    binListContainer.classList.toggle('expanded');
+});
 
-          
+// Load bins into the bin list
+function loadBinList() {
+    fetch('../bins/get_bins.php')
+        .then(response => response.json())
+        .then(data => {
+            binList.innerHTML = ""; // Clear list before populating
 
+            data.forEach(bin => {
+                const binItem = document.createElement("div");
+                binItem.classList.add("bin-list-item");
+                binItem.innerText = bin.bin_code;
+                binItem.dataset.lng = bin.longitude;
+                binItem.dataset.lat = bin.latitude;
+
+                // Click event to navigate to bin location
+                binItem.addEventListener("click", () => {
+                    const lng = parseFloat(binItem.dataset.lng);
+                    const lat = parseFloat(binItem.dataset.lat);
+                    map.flyTo({ center: [lng, lat], zoom: 15 });
+                });
+
+                binList.appendChild(binItem);
+            });
+        })
+        .catch(error => console.error('Error loading bins:', error));
+}
+
+// Load bins when the page loads
+document.addEventListener('DOMContentLoaded', loadBinList);
+
+
+            </script>
     <!-- JavaScript for Sidebar Hover Effect and Time/Weather -->
     <script>
         const sidebar = document.querySelector('.sidebar');
@@ -637,6 +767,7 @@ element.style {
 
     
     </script>
+   
     <script>
         // JavaScript to handle modal and form submission
         document.getElementById('addBinBtn').onclick = function () {
@@ -772,6 +903,48 @@ function showSuccessMessage() {
     });
 
     let marker = new mapboxgl.Marker();
+    fetch('../bins/get_bins.php')
+    .then(response => response.json())
+    .then(data => {
+        console.log("Fetched data:", data); // This should log your bin data array
+        const binListContainer = document.getElementById("binList");
+        binListContainer.innerHTML = ""; // Clear the list before populating
+
+        data.forEach(bin => {
+            const binItem = document.createElement("div");
+            binItem.classList.add("bin-list-item");
+            binItem.innerText = bin.bin_code;
+            binItem.dataset.lng = bin.longitude;
+            binItem.dataset.lat = bin.latitude;
+
+            binItem.addEventListener("click", () => {
+                const lng = parseFloat(binItem.dataset.lng);
+                const lat = parseFloat(binItem.dataset.lat);
+                map.flyTo({ center: [lng, lat], zoom: 15 });
+                marker.setLngLat([lng, lat]).addTo(map);
+            });
+
+            binListContainer.appendChild(binItem); // Append bin to list
+            addTrashBinMarker(bin.longitude, bin.latitude, bin.bin_code);
+        });
+    })
+    .catch(error => console.error('Error loading bins:', error));
+
+        function addTrashBinMarker(lng, lat, binCode) {
+            const el = document.createElement('div');
+            el.className = 'trash-bin-marker';
+            el.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
+            el.style.width = '30px';
+            el.style.height = '30px';
+            el.style.backgroundSize = '100%';
+
+            new mapboxgl.Marker(el)
+                .setLngLat([lng, lat])
+                .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`Bin Code: ${binCode}`))
+                .addTo(map);
+        }
+
+        window.onload = loadBinList;
 
     // Place marker on map click, fetch address, and set form latitude/longitude values
     map.on('click', (e) => {
