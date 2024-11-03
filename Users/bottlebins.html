@@ -530,8 +530,18 @@ element.style {
         }
 
         #map {
-            height: 400px;
             width: 100%;
+            height: 400px;
+            margin-top: 15px;
+            border-radius: 10px;
+        }
+        #location-search {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -550,7 +560,7 @@ element.style {
                     <li><a href="#"><i class="fas fa-user"></i> <span>Profile</span></a></li>
                     <li><a href="bottlebins.html"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
                     <li><a href="reports.html"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-                    <li><a href="logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                    <li><a href="../Users/logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
@@ -558,6 +568,12 @@ element.style {
         <!-- Main Content -->
         <main class="content">
             <section class="widget time-widget">
+                <!-- Location Search Bar -->
+                <input type="text" id="location-search" placeholder="Search for location...">
+
+                <!-- Map container within Time Widget -->
+                <div id="map"></div>
+
                 <!-- Add Bin Button -->
                 <button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
 
@@ -583,17 +599,6 @@ element.style {
                     </div>
                 </div>
 
-                <!-- Map Modal with Search Bar -->
-                <div id="mapsModal" class="modal">
-                    <div class="modal-content map-modal-content">
-                        <span class="close-maps-btn">&times;</span>
-                        <h2>Select Location</h2>
-                        <input type="text" id="search-bar" placeholder="Search location...">
-                        <div id="map"></div> <!-- Map container -->
-                        <button id="confirmLocationBtn" class="submit-btn">Confirm Location</button>
-                    </div>
-                </div>
-
                 <!-- Success Message -->
                 <div id="successMessage" class="success-message">Bottle Bin Successfully Added!</div>
                 <div id="binContainer" class="bin-container"></div>
@@ -607,6 +612,7 @@ element.style {
                     </div>
                 </div>
             </section>
+         
             
                 
         
@@ -754,97 +760,149 @@ function showSuccessMessage() {
 }
 
         </script>
-    <script>
-        // Replace 'YOUR_MAPBOX_ACCESS_TOKEN' with your actual Mapbox token
-mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VyYWxkLTE5IiwiYSI6ImNtMzFyM25vNzBzeDYybXB6aThta3dlbnQifQ.A1AjkdcWJ7g3YIRuxeSvwQ';
+  <script>
+    // Initialize Mapbox with your access token
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VyYWxkLTE5IiwiYSI6ImNtMzFyM25vNzBzeDYybXB6aThta3dlbnQifQ.A1AjkdcWJ7g3YIRuxeSvwQ';
 
-const map = new mapboxgl.Map({
-    container: 'map', // HTML element id where the map will be displayed
-    style: 'mapbox://styles/mapbox/streets-v11', // Map style
-    center: [120.9842, 14.5995], // Starting position [lng, lat] (Manila, as an example)
-    zoom: 12 // Starting zoom level
-});
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [120.9842, 14.5995], // Center on Manila, Philippines
+        zoom: 12
+    });
 
-let marker = new mapboxgl.Marker();
-let selectedAddress = "";
+    let marker = new mapboxgl.Marker();
 
-// Map click event to place marker and fetch address
-map.on('click', (e) => {
-    const lngLat = e.lngLat;
-    marker.setLngLat(lngLat).addTo(map); // Place marker on the clicked location
+    // Place marker on map click, fetch address, and set form latitude/longitude values
+    map.on('click', (e) => {
+        const { lng, lat } = e.lngLat;
+        marker.setLngLat([lng, lat]).addTo(map);
 
-    // Set latitude and longitude values in hidden form fields
-    document.getElementById("latitude").value = lngLat.lat;
-    document.getElementById("longitude").value = lngLat.lng;
+        // Set the hidden form fields for latitude and longitude
+        document.getElementById("latitude").value = lat;
+        document.getElementById("longitude").value = lng;
 
-    // Fetch address using Mapbox Geocoding API
-    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lngLat.lng},${lngLat.lat}.json?access_token=${mapboxgl.accessToken}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.features.length) {
-                selectedAddress = data.features[0].place_name; // Get the formatted address
-                document.getElementById("binAddress").value = selectedAddress; // Auto-fill address
-            }
-        })
-        .catch(error => console.error('Error fetching address:', error));
-});
-
-// Handle search input for location search
-document.getElementById("search-bar").addEventListener("keypress", function (e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        const query = e.target.value;
-
-        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${query}.json?access_token=${mapboxgl.accessToken}`)
+        // Reverse geocode to fetch address for the clicked location
+        fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`)
             .then(response => response.json())
             .then(data => {
-                if (data.features.length > 0) {
-                    const place = data.features[0];
-                    const [lng, lat] = place.center;
-
-                    // Move the map to the searched location
-                    map.flyTo({
-                        center: [lng, lat],
-                        zoom: 14
-                    });
-
-                    // Set the marker at the searched location
-                    marker.setLngLat([lng, lat]).addTo(map);
-                    selectedAddress = place.place_name;
-
-                    // Set the hidden fields with latitude and longitude
-                    document.getElementById("latitude").value = lat;
-                    document.getElementById("longitude").value = lng;
-                    document.getElementById("binAddress").value = selectedAddress; // Auto-fill address
+                if (data.features && data.features.length > 0) {
+                    const address = data.features[0].place_name;
+                    document.getElementById("binAddress").value = address; // Auto-fill address field
+                } else {
+                    alert("Address not found for this location.");
                 }
             })
-            .catch(error => console.error('Error with geocoding:', error));
+            .catch(error => console.error('Error fetching address:', error));
+    });
+
+    // Event listener for location search
+    document.getElementById('location-search').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const query = e.target.value;
+
+            // Forward geocode the address
+            fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxgl.accessToken}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.features && data.features.length > 0) {
+                        const [lng, lat] = data.features[0].center;
+
+                        // Navigate map to the searched location
+                        map.flyTo({
+                            center: [lng, lat],
+                            zoom: 14
+                        });
+
+                        // Place marker at the searched location
+                        marker.setLngLat([lng, lat]).addTo(map);
+
+                        // Auto-fill the address in the binAddress field
+                        document.getElementById("binAddress").value = data.features[0].place_name;
+
+                        // Update hidden form fields with lat/lng
+                        document.getElementById("latitude").value = lat;
+                        document.getElementById("longitude").value = lng;
+                    } else {
+                        alert("Location not found.");
+                    }
+                })
+                .catch(error => console.error('Error fetching location:', error));
+        }
+    });
+
+    // Function to add a marker for a trash bin on the map
+    function addTrashBinMarker(lng, lat, binCode) {
+        const el = document.createElement('div');
+        el.className = 'trash-bin-marker';
+        el.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
+        el.style.width = '30px';
+        el.style.height = '30px';
+        el.style.backgroundSize = '100%';
+
+        new mapboxgl.Marker(el)
+            .setLngLat([lng, lat])
+            .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`Bin Code: ${binCode}`))
+            .addTo(map);
     }
-});
 
-// Open Maps Modal and trigger map resize
-document.getElementById("setLocationBtn").onclick = function () {
-    document.getElementById("mapsModal").style.display = "block";
-    map.resize(); // Trigger map resize to ensure full width
-};
+    // Fetch saved bottle bins and add them to the map on page load
+    function loadBins() {
+        fetch('../bins/get_bins.php')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(bin => {
+                    addTrashBinMarker(bin.longitude, bin.latitude, bin.bin_code);
+                });
+            })
+            .catch(error => console.error('Error loading bins:', error));
+    }
 
-// Close Maps Modal without confirming
-document.querySelector(".close-maps-btn").onclick = function () {
-    document.getElementById("mapsModal").style.display = "none";
-};
+    window.onload = loadBins;
 
-// Confirm Location Button: Confirm and auto-fill the address
-document.getElementById("confirmLocationBtn").onclick = function () {
-    document.getElementById("mapsModal").style.display = "none";
-    document.getElementById("binAddress").value = selectedAddress; // Auto-fill address field after confirmation
-};
+    // Handle form submission to add a new bin
+    document.getElementById('addBinForm').onsubmit = function (event) {
+        event.preventDefault();
+        const binCode = document.getElementById("binCode").value;
+        const address = document.getElementById("binAddress").value;
+        const lat = document.getElementById("latitude").value;
+        const lng = document.getElementById("longitude").value;
 
-// Close Add Bin Modal
-document.querySelector(".close-btn").onclick = function () {
-    document.getElementById("addBinModal").style.display = "none";
-};
+        if (!lat || !lng) {
+            alert("Please select a location on the map.");
+            return;
+        }
 
-       </script>
+        fetch('../bins/add_bin.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ binCode, address, lat, lng })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addTrashBinMarker(lng, lat, binCode);
+                document.getElementById('addBinModal').style.display = 'none';
+                showSuccessMessage();
+            } else {
+                console.error('Error saving bin:', data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    };
+
+    // Show success message
+    function showSuccessMessage() {
+        const successMessage = document.getElementById('successMessage');
+        successMessage.style.display = 'block';
+        setTimeout(() => {
+            successMessage.style.display = 'none';
+        }, 3000);
+    }
+</script>
             
     
         

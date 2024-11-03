@@ -9,15 +9,19 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$sql = "SELECT bin_code, bin_address FROM bottle_bins";
+$sql = "SELECT bin_code, address, latitude, longitude FROM bottle_bins";
 $result = $conn->query($sql);
 
 $bins = [];
-while ($row = $result->fetch_assoc()) {
-    $bins[] = $row;
+
+if ($result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $bins[] = $row;
+    }
 }
 
-echo json_encode($bins);
-
 $conn->close();
+
+header('Content-Type: application/json');
+echo json_encode($bins);
 ?>

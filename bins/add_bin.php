@@ -1,23 +1,31 @@
 <?php
 require '../config.php';
+header('Content-Type: application/json');
 // Database connection
 $conn = new mysqli("localhost", "root", "", "bottlecycle-ctu");
 
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    echo json_encode(["success" => false, "message" => "Database connection failed"]);
+    exit;
 }
 
-$binCode = $_POST['binCode'];
-$binAddress = $_POST['binAddress'];
-$labelStatus = $_POST['labelStatus'];
+// Decode JSON input
+$data = json_decode(file_get_contents("php://input"), true);
 
-// Insert the new bin into the database
-$sql = "INSERT INTO bottle_bins (bin_code, bin_address, label_status) VALUES (?, ?, ?)";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("sss", $binCode, $binAddress, $labelStatus);
-$stmt->execute();
+$binCode = $data['binCode'];
+$address = $data['address'];
+$latitude = $data['lat'];
+$longitude = $data['lng'];
+
+$stmt = $conn->prepare("INSERT INTO bottle_bins (bin_code, address, latitude, longitude) VALUES (?, ?, ?, ?)");
+$stmt->bind_param("ssdd", $binCode, $address, $latitude, $longitude);
+
+if ($stmt->execute()) {
+    echo json_encode(["success" => true]);
+} else {
+    echo json_encode(["success" => false, "message" => "Failed to insert data"]);
+}
+
 $stmt->close();
 $conn->close();
-
-echo "Bottle bin added successfully!";
 ?>
