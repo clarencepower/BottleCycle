@@ -264,6 +264,110 @@
             40% { transform: translateY(-10px); }
             60% { transform: translateY(-5px); }
         }
+         /* Notification Widget Styling */
+    .notification-widget {
+        background: rgba(255, 255, 255, 0.9);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        max-width: 350px;
+        margin-top: 10px;
+    }
+
+    .notification-widget h4 {
+        font-size: 20px;
+        color: #002f05;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    #notification-container {
+        max-height: 200px; /* Limit container height for recent notifications */
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        background-color: #ffe5e5;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-item p {
+        margin: 5px 0;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .notification-item .notification-title {
+        font-weight: bold;
+        font-size: 16px;
+        color: #d9534f;
+    }
+
+    .notification-item .notification-timestamp {
+        font-size: 12px;
+        color: #666;
+    }
+
+     /* Notification Widget Styling with Glassmorphism */
+     .notification-widget {
+        background: rgba(255, 255, 255, 0.1); /* Light transparent background */
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px); /* Frosted glass effect */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        max-width: 350px;
+        margin-top: 10px;
+    }
+
+    #notification-container {
+        max-height: 200px; /* Limit container height for recent notifications */
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        background: rgba(255, 255, 255, 0.858); /* Semi-transparent background */
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(6px); /* Frosted glass effect on individual items */
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .notification-item p {
+        margin: 5px 0;
+        font-size: 16px;
+        color: #0e0e0e;
+    }
+
+    .notification-item .notification-title {
+        font-weight: bold;
+        font-size: 16px;
+        color: #ff7070; /* Red accent color */
+    }
+
+
+    .notification-icon .badge {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        background-color: #ff3e3e;
+        color: white;
+        padding: 3px 7px;
+        border-radius: 50%;
+        font-size: 12px;
+        display: inline-block;
+    }
+
+  
     </style>
 </head>
 <body>
@@ -281,7 +385,7 @@
             <nav>
                 <ul class="nav-links">
                     <li><a href="#"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-                    <li><a href="#"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
+                    <li><a href="../Users/bin_notification.html"><i class="fas fa-bell"></i> <span >Notifications</span></a></li>
                     <li><a href="#"><i class="fas fa-user"></i> <span>Profile</span></a></li>
                     <li><a href="bottlebins.html"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
                     <li><a href="reports.html"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
@@ -327,21 +431,23 @@
             </section>
 
             <!-- Notifications Widget -->
-            <section class="widget notification-widget">
-                <h4>Notification</h4>
-                <div id="notification-container">
-                    <div class="notification">
-                        <p><strong>Bottle Bin AST-01 in Asturias is Almost Full</strong></p>
-                        <p>"Please prepare to empty it soon to avoid overflow"</p>
-                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
-                    </div>
-                    <div class="notification">
-                        <p><strong>Bottle Bin AST-01 in Asturias is Full</strong></p>
-                        <p>"Immediate emptying is required to maintain cleanliness"</p>
-                        <p>Location: <a href="https://maps.app.goo.gl/3LV76YYWDbxarrKq6" target="_blank">Asturias Location</a></p>
-                    </div>
-                </div>
-            </section>
+           
+              <!-- Notifications Widget -->
+<section class="widget notification-widget">
+    <h4>Notifications</h4>
+    <div id="notification-container">
+        <div id="notification-content">
+            <!-- "Full" status records will be dynamically populated here -->
+        </div>
+    </div>
+    <!-- Notification Icon with Badge -->
+    <div class="notification-icon">
+        <i class="fas fa-bell"></i>
+        <span id="notification-badge" class="badge">0</span>
+    </div>
+   
+</section>
+        
 
             <!-- Calendar Widget -->
             <section class="widget calendar-widget">
@@ -350,13 +456,64 @@
                         style="border: 0" width="100%" height="400" frameborder="0" scrolling="no"></iframe>
             </section>
             
-            <!-- Notification Icon with Badge -->
-            <div class="notification-icon">
-                <i class="fas fa-bell"></i>
-                <span id="notification-badge" class="badge">0</span>
-            </div>
+            
         </main>
     </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            function fetchBinStatus() {
+                fetch('../Sensors/get_bin_status.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const notificationContent = document.getElementById("notification-content");
+        
+                        // Clear the notification content first
+                        notificationContent.innerHTML = "";
+        
+                        // Filter for "full" notifications and get only the latest 4
+                        const fullNotifications = data.filter(record => record.status.includes("full")).slice(0, 4);
+        
+                        // Loop through the recent 4 "full" notifications and display them
+                        fullNotifications.forEach((record) => {
+                            const notificationItem = document.createElement("div");
+                            notificationItem.classList.add("notification-item");
+        
+                            const title = document.createElement("p");
+                            title.classList.add("notification-title");
+                            title.textContent = `Bottle Bin ${'0001'} is Full`;
+        
+                            const message = document.createElement("p");
+                            message.textContent = "Please empty to avoid overflow.";
+        
+                            const timestamp = document.createElement("p");
+                            timestamp.classList.add("notification-timestamp");
+                            timestamp.textContent = `Timestamp: ${record.timestamp}`;
+        
+                            notificationItem.appendChild(title);
+                            notificationItem.appendChild(message);
+                            notificationItem.appendChild(timestamp);
+        
+                            notificationContent.appendChild(notificationItem);
+                        });
+        
+                        // Update the notification badge count with the number of "full" notifications
+                        const notificationBadge = document.getElementById("notification-badge");
+                        notificationBadge.textContent = fullNotifications.length;
+                        notificationBadge.style.display = fullNotifications.length > 0 ? "inline-block" : "none";
+                    })
+                    .catch(error => console.error("Error fetching bin status:", error));
+            }
+        
+            // Initial fetch
+            fetchBinStatus();
+        
+            // Set interval to refresh the bin status every 10 seconds
+            setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
+        });
+        </script>
+        
+        
 
     <!-- JavaScript for Sidebar Toggle and Other Functions -->
     <script>

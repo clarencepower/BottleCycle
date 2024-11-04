@@ -3,24 +3,32 @@ require '../config.php';
 // Database connection
 $conn = new mysqli("localhost", "root", "", "bottlecycle-ctu");
 
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    echo json_encode(["success" => false, "message" => "Database connection failed: " . $e->getMessage()]);
+    exit;
 }
 
-// Get the bin code from the query string
-$binCode = $_GET['binCode'];
+// Check if binCode parameter is provided
+if (isset($_GET['binCode'])) {
+    $binCode = $_GET['binCode'];
 
-// Prepare and execute the delete query
-$sql = "DELETE FROM bottle_bins WHERE bin_code = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("s", $binCode);
+    // Prepare SQL statement to delete bin by binCode
+    $stmt = $pdo->prepare("DELETE FROM bins WHERE bin_code = :bin_code");
+    $stmt->bindParam(':bin_code', $binCode);
 
-if ($stmt->execute()) {
-    echo "Bottle bin deleted successfully!";
+    try {
+        if ($stmt->execute()) {
+            echo json_encode(["success" => true, "message" => "Bin deleted successfully."]);
+        } else {
+            echo json_encode(["success" => false, "message" => "Failed to delete bin."]);
+        }
+    } catch (PDOException $e) {
+        echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
+    }
 } else {
-    echo "Error deleting bin: " . $conn->error;
+    echo json_encode(["success" => false, "message" => "binCode parameter missing."]);
 }
-
-$stmt->close();
-$conn->close();
 ?>

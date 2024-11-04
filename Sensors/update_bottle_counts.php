@@ -16,7 +16,7 @@ if ($conn->connect_error) {
 $small_count = isset($_GET['small_count']) ? intval($_GET['small_count']) : null;
 $medium_count = isset($_GET['medium_count']) ? intval($_GET['medium_count']) : null;
 $large_count = isset($_GET['large_count']) ? intval($_GET['large_count']) : null;
-$is_full = isset($_GET['is_full']) ? boolval($_GET['is_full']) : null;
+$is_full = isset($_GET['is_full']) ? intval($_GET['is_full']) : null; // Modified to handle as integer
 
 // Insert data based on bottle size
 if ($small_count !== null) {
@@ -42,7 +42,7 @@ if ($large_count !== null) {
 
 if ($is_full !== null) {
     $stmt = $conn->prepare("INSERT INTO bin_status (is_full) VALUES (?)");
-    $stmt->bind_param("i", $is_full);
+    $stmt->bind_param("i", $is_full); // Insert the integer status value
     $stmt->execute();
     $stmt->close();
 }
