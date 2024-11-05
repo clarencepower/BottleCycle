@@ -406,7 +406,7 @@
                                 const row = document.createElement("tr");
         
                                 // Custom Bottle Bin Code format (AST- followed by the actual id)
-                                const customCode = `AST-${String(record.id).padStart(3, '0')}`;
+                                const customCode = `AST-${String(record.id).padStart(5, '0')}`;
         
                                 const codeCell = document.createElement("td");
                                 codeCell.textContent = `Bottle Bin Code: ${customCode}`;

@@ -181,8 +181,8 @@
 
         .weather img {
             margin-bottom: 10px;
-            width: 50px;
-            height: 50px;
+            width: 150px;
+            height: 150px;
             animation: bounce 1s infinite;
         }
 
@@ -371,7 +371,7 @@
     </style>
 </head>
 <body>
-
+    <audio id="notification-sound" src="../drawable/notif.mp3" preload="auto"></audio>
     <div class="dashboard">
         <!-- Sidebar -->
         <aside class="sidebar collapsed">
@@ -427,6 +427,10 @@
                         <h5>Large Bottles</h5>
                         <p id="large-bottle-count">Loading...</p>
                     </div>
+                    <div class="bottle-box">
+                        <h5>Total Bottles Collected</h5>
+                        <p id="total-counts">Loading...</p>
+                    </div>
                 </div>
             </section>
 
@@ -462,55 +466,67 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            function fetchBinStatus() {
-                fetch('../Sensors/get_bin_status.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        const notificationContent = document.getElementById("notification-content");
-        
-                        // Clear the notification content first
-                        notificationContent.innerHTML = "";
-        
-                        // Filter for "full" notifications and get only the latest 4
-                        const fullNotifications = data.filter(record => record.status.includes("full")).slice(0, 4);
-        
-                        // Loop through the recent 4 "full" notifications and display them
-                        fullNotifications.forEach((record) => {
-                            const notificationItem = document.createElement("div");
-                            notificationItem.classList.add("notification-item");
-        
-                            const title = document.createElement("p");
-                            title.classList.add("notification-title");
-                            title.textContent = `Bottle Bin ${'0001'} is Full`;
-        
-                            const message = document.createElement("p");
-                            message.textContent = "Please empty to avoid overflow.";
-        
-                            const timestamp = document.createElement("p");
-                            timestamp.classList.add("notification-timestamp");
-                            timestamp.textContent = `Timestamp: ${record.timestamp}`;
-        
-                            notificationItem.appendChild(title);
-                            notificationItem.appendChild(message);
-                            notificationItem.appendChild(timestamp);
-        
-                            notificationContent.appendChild(notificationItem);
-                        });
-        
-                        // Update the notification badge count with the number of "full" notifications
-                        const notificationBadge = document.getElementById("notification-badge");
-                        notificationBadge.textContent = fullNotifications.length;
-                        notificationBadge.style.display = fullNotifications.length > 0 ? "inline-block" : "none";
-                    })
-                    .catch(error => console.error("Error fetching bin status:", error));
-            }
-        
-            // Initial fetch
-            fetchBinStatus();
-        
-            // Set interval to refresh the bin status every 10 seconds
-            setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
-        });
+    let previousNotificationCount = 0;
+
+    function fetchBinStatus() {
+        fetch('../Sensors/get_bin_status.php')
+            .then(response => response.json())
+            .then(data => {
+                const notificationContent = document.getElementById("notification-content");
+                
+                // Clear the notification content first
+                notificationContent.innerHTML = "";
+
+                // Filter for "full" notifications and get only the latest 4
+                const fullNotifications = data.filter(record => record.status.includes("full")).slice(0, 4);
+
+                // Check if the number of full notifications has increased
+                if (fullNotifications.length > previousNotificationCount) {
+                    // Play the notification sound
+                    const notificationSound = document.getElementById("notification-sound");
+                    notificationSound.play();
+                }
+
+                // Loop through the recent 4 "full" notifications and display them
+                fullNotifications.forEach((record) => {
+                    const notificationItem = document.createElement("div");
+                    notificationItem.classList.add("notification-item");
+
+                    const title = document.createElement("p");
+                    title.classList.add("notification-title");
+                    title.textContent = `Bottle Bin ${'0001'} is Full`;
+
+                    const message = document.createElement("p");
+                    message.textContent = "Please empty to avoid overflow.";
+
+                    const timestamp = document.createElement("p");
+                    timestamp.classList.add("notification-timestamp");
+                    timestamp.textContent = `Timestamp: ${record.timestamp}`;
+
+                    notificationItem.appendChild(title);
+                    notificationItem.appendChild(message);
+                    notificationItem.appendChild(timestamp);
+
+                    notificationContent.appendChild(notificationItem);
+                });
+
+                // Update the notification badge count with the number of "full" notifications
+                const notificationBadge = document.getElementById("notification-badge");
+                notificationBadge.textContent = fullNotifications.length;
+                notificationBadge.style.display = fullNotifications.length > 0 ? "inline-block" : "none";
+
+                // Update the previous notification count
+                previousNotificationCount = fullNotifications.length;
+            })
+            .catch(error => console.error("Error fetching bin status:", error));
+    }
+
+    // Initial fetch
+    fetchBinStatus();
+
+    // Set interval to refresh the bin status every 10 seconds
+    setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
+});
         </script>
         
         
@@ -608,6 +624,7 @@ function fetchBottleCounts() {
             document.getElementById('small-bottle-count').textContent = data.small || '0';
             document.getElementById('medium-bottle-count').textContent = data.medium || '0';
             document.getElementById('large-bottle-count').textContent = data.large || '0';
+            document.getElementById('total-counts').textContent = data.total || '0';
         })
         .catch(error => console.error('Error fetching bottle counts:', error));
 }

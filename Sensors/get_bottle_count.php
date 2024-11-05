@@ -19,12 +19,14 @@ $smallCount = $conn->query($sqlSmall)->fetch_assoc()['count'] ?? 0;
 $mediumCount = $conn->query($sqlMedium)->fetch_assoc()['count'] ?? 0;
 $largeCount = $conn->query($sqlLarge)->fetch_assoc()['count'] ?? 0;
 
+$totalCount =  $smallCount + $mediumCount + $largeCount ;
 $conn->close();
 
 // Return data in JSON format
 echo json_encode([
     'small' => $smallCount,
     'medium' => $mediumCount,
-    'large' => $largeCount
+    'large' => $largeCount,
+    'total' => $totalCount
 ]);
 ?>
