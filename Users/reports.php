@@ -1,3 +1,7 @@
+<?php
+require '../config.php';
+require '../auth.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -321,6 +325,38 @@
             margin: auto;
             margin-top: 50px;
         }
+        /* Search Container Styling */
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.search-container label {
+    font-size: 16px;
+    color: #333;
+}
+
+.search-container input[type="date"] {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.search-container button {
+    padding: 8px 12px;
+    background-color: #005709;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.search-container button:hover {
+    background-color: #004108;
+}
  </style>
 </head>
 <body class="bod">
@@ -332,12 +368,12 @@
                 <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             </div>
             <nav>
-                <ul class="nav-links">
-                    <li><a href="../Users/dashboard.html"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-                    <li><a href="#"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
-                    <li><a href="#"><i class="fas fa-user"></i> <span>Profile</span></a></li>
-                    <li><a href="bottlebins.html"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
-                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+            <ul class="nav-links">
+                    <li><a href="../Users/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                    <li><a href="../Users/bin_notification.php"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
+                    <li><a href="../Users/profile.php"><i class="fas fa-user"></i> <span>Profile</span></a></li>
+                    <li><a href="../Users/bottlebins.php"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
+                    <li><a href="../Users/reports.php"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
                     <li><a href="../Users/logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
@@ -346,27 +382,38 @@
         <!-- Main Content -->
         <main class="content">
             <section class="widget time-widget">
-                <div class="notification-container">
-                    <i class="bell-icon">&#128276;</i> <!-- Bell icon (Unicode bell) -->
-                    <span class="badge" id="notification-badge"></span>
-                    <h2>Bin Status Notification History</h2>
-                </div>
-                <table id="history-table">
-                    <thead>
-                        <tr>
-                            <th>Bottle Bin Code</th>
-                            <th>Status</th>
-                            <th>Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-body">
-                        <!-- Records will be dynamically populated here -->
-                    </tbody>
-                </table>
-                </div>
+                <section class="widget report-widget">
+                    <h4>Daily Bottle Collection Report</h4>
+                    <div class="search-container">
+                        <label for="date-search">Search by Date:</label>
+                        <input type="date" id="date-search">
+                        <button onclick="searchByDate()">Search</button>
+                    </div>
+                    <div id="report-table-container">
+                        <table id="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Total Small Bottles</th>
+                                    <th>Total Medium Bottles</th>
+                                    <th>Total Large Bottles</th>
+                                    <th>Total Bottles</th>
+                                </tr>
+                            </thead>
+                            <tbody id="report-table-body">
+                                <!-- Rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <canvas id="report-chart" width="400" height="200"></canvas>
+                    </div>
+                </section>
+
             </section>
             
-       
+       <!-- Link to Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script>
              <!-- JavaScript for Sidebar Toggle and Other Functions -->
                 
@@ -386,72 +433,107 @@
                         sidebar.classList.add('collapsed');
                     });
             </script>
-       <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            function fetchBinStatus() {
-                fetch('../Sensors/get_bin_status.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        const historyTable = document.getElementById("history-body");
-        
-                        // Clear the table first
-                        historyTable.innerHTML = "";
-        
-                        // Variable to keep track of displayed statuses to avoid duplication
-                        let previousStatus = null;
-        
-                        // Loop through the records, filter duplicates, and exclude "Bottle Bin is Empty."
-                        data.forEach((record) => {
-                            if (record.status !== "Bottle Bin is Empty." && record.status !== previousStatus) {
-                                const row = document.createElement("tr");
-        
-                                // Custom Bottle Bin Code format (AST- followed by the actual id)
-                                const customCode = `AST-${String(record.id).padStart(5, '0')}`;
-        
-                                const codeCell = document.createElement("td");
-                                codeCell.textContent = `Bottle Bin Code: ${customCode}`;
-                                row.appendChild(codeCell);
-        
-                                const statusCell = document.createElement("td");
-                                statusCell.textContent = record.status;
-        
-                                // Apply color based on status
-                                if (record.status.toLowerCase().includes("full")) {
-                                    statusCell.style.backgroundColor = "red";
-                                    statusCell.style.color = "white"; // Optional for better contrast
-                                } else if (record.status.toLowerCase().includes("medium")) {
-                                    statusCell.style.backgroundColor = "yellow";
-                                    statusCell.style.color = "black"; // Optional for better contrast
-                                } else if (record.status.toLowerCase().includes("low")) {
-                                    statusCell.style.backgroundColor = "green";
-                                    statusCell.style.color = "white"; // Optional for better contrast
-                                }
-        
-                                row.appendChild(statusCell);
-        
-                                const timestampCell = document.createElement("td");
-                                timestampCell.textContent = record.timestamp;
-                                row.appendChild(timestampCell);
-        
-                                historyTable.appendChild(row);
-        
-                                // Update the previous status to current
-                                previousStatus = record.status;
-                            }
-                        });
-                    })
-                    .catch(error => console.error("Error fetching bin status:", error));
+            <script>
+       // Function to fetch and display reports based on a specific date
+       function searchByDate() {
+    const date = document.getElementById("date-search").value;
+    if (!date) {
+        alert("Please select a date to search.");
+        return;
+    }
+
+    fetch(`../Sensors/get_daily_reports.php?date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.length > 0) {
+                populateReportTable(data);  // Display the data in the table
+                renderReportChart(data);    // Update the chart with the data
+            } else {
+                // If no data is returned, clear the table and chart, and show a message
+                document.getElementById('report-table-body').innerHTML = '<tr><td colspan="5">No records found for this date.</td></tr>';
+                renderReportChart([]);  // Clear the chart
             }
-        
-            // Initial fetch
-            fetchBinStatus();
-        
-            // Set interval to refresh the bin status every 10 seconds
-            setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
-        });
-        </script>
-            
-            
+        })
+        .catch(error => console.error('Error fetching daily report:', error));
+}
+// Function to fetch all daily report data
+function fetchDailyReport() {
+    fetch('../Sensors/get_daily_reports.php')
+        .then(response => response.json())
+        .then(data => {
+            populateReportTable(data);
+            renderReportChart(data);
+        })
+        .catch(error => console.error('Error fetching daily report:', error));
+}
+
+// Populate report table with data
+function populateReportTable(data) {
+    const tableBody = document.getElementById('report-table-body');
+    tableBody.innerHTML = '';  // Clear previous rows
+
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.date}</td>
+            <td>${row.small_bottles}</td>
+            <td>${row.medium_bottles}</td>
+            <td>${row.large_bottles}</td>
+            <td>${row.total_bottles}</td>
+        `;
+        tableBody.appendChild(tr);
+    });
+}
+
+// Render chart with report data
+function renderReportChart(data) {
+    const dates = data.map(row => row.date);
+    const smallBottles = data.map(row => row.small_bottles);
+    const mediumBottles = data.map(row => row.medium_bottles);
+    const largeBottles = data.map(row => row.large_bottles);
+    const totalBottles = data.map(row => row.total_bottles);
+
+    const ctx = document.getElementById('report-chart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    label: 'Small Bottles',
+                    data: smallBottles,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                },
+                {
+                    label: 'Medium Bottles',
+                    data: mediumBottles,
+                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                },
+                {
+                    label: 'Large Bottles',
+                    data: largeBottles,
+                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
+                },
+                {
+                    label: 'Total Bottles',
+                    data: totalBottles,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: { title: { display: true, text: 'Date' } },
+                y: { title: { display: true, text: 'Bottles Collected' } }
+            }
+        }
+    });
+}
+
+// Fetch all report data immediately when the page loads
+fetchDailyReport();
+    </script>
             
                 
     

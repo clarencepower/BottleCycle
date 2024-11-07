@@ -6,28 +6,29 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-if(isset($_POST["submit"])) {
+if (isset($_POST["submit"])) {
     $email = $_POST["email"];
     $password = $_POST["password"];
 
     // Prepare SQL query to prevent SQL injection
-    $query = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $query = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
     $query->bind_param("s", $email);
     $query->execute();
     $result = $query->get_result();
 
     // Check if the email exists in the database
-    if($result->num_rows > 0) {
+    if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         
         // Verify the password
-        if(password_verify($password, $row['password'])) {
+        if (password_verify($password, $row['password'])) {
             // Start session and save user data
             $_SESSION["loggedin"] = true;
+            $_SESSION["user_id"] = $row["id"];   // Store user ID in session
             $_SESSION["email"] = $email;
 
-            // Redirect to dashboard.html after successful login
-            header("Location: dashboard.html");
+            // Redirect to dashboard.php after successful login
+            header("Location: ../Users/dashboard.php");
             exit(); // Ensure the script stops executing after the redirect
         } else {
             echo "<script> alert('Incorrect Password'); </script>";
@@ -53,7 +54,7 @@ if(isset($_POST["submit"])) {
             font-family: 'Arial', sans-serif;
             background: url('../drawable/webbackground.jpg') no-repeat center center fixed;
             background-size: cover;
-            
+            color: #000;
         }
         </style>
     

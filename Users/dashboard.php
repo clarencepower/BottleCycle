@@ -1,3 +1,8 @@
+<?php
+session_start();
+require '../config.php';
+require '../auth.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -384,12 +389,12 @@
             </div>
             <nav>
                 <ul class="nav-links">
-                    <li><a href="#"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-                    <li><a href="../Users/bin_notification.html"><i class="fas fa-bell"></i> <span >Notifications</span></a></li>
-                    <li><a href="#"><i class="fas fa-user"></i> <span>Profile</span></a></li>
-                    <li><a href="bottlebins.html"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
-                    <li><a href="reports.html"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
-                    <li><a href="../Public/index.html"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                    <li><a href="../Users/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
+                    <li><a href="../Users/bin_notification.php"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
+                    <li><a href="../Users/profile.php"><i class="fas fa-user"></i> <span>Profile</span></a></li>
+                    <li><a href="../Users/bottlebins.php"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
+                    <li><a href="../Users/reports.php"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
+                    <li><a href="../Users/logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
