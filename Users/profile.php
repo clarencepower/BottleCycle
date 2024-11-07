@@ -366,11 +366,157 @@ if (isset($_POST["submit"])) {
 .register-link:hover {
     text-decoration: underline;
 }
+/* Glassmorphism Styles */
+.change-password-box {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+    backdrop-filter: blur(10px); /* Apply blur effect */
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    padding: 40px;
+    max-width: 400px;
+    width: 100%;
+    margin: auto; /* Center the box */
+}
 
+.change-password-box h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #080808;
+}
+
+/* Input Fields */
+.change-password-box .input-group {
+    margin-bottom: 20px;
+}
+
+.change-password-box .input-group label {
+    color: #080808;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.change-password-box input {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.3); /* Slight transparency */
+    color: #080808;
+}
+
+.change-password-box button {
+    background-color: #004d00;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+}
+
+.change-password-box button:hover {
+    background-color: #003300;
+}
+
+/* Center the form in the page */
+.login-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 80px); /* Full screen minus the header */
+}
+
+.login-box {
+    max-width: 500px;
+    margin: auto;
+}
+/* Popup styling */
+.popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+
+        .popup h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .popup .input-group {
+            margin-bottom: 15px;
+        }
+
+        .popup .input-group label {
+            display: block;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .popup .input-group input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .popup button {
+            background-color: #004d00;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+        }
+
+        .popup button:hover {
+            background-color: #3e8e41;
+        }
+
+        /* Overlay */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        button{
+            background-color: #004d00;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 20%;
+    
+        }
+        element.style {
+            display: none !important;
+}
  </style>
 </head>
 <body class="bod">
-
+     
     <div class="dashboard">
         <!-- Sidebar -->
         <aside class="sidebar collapsed">
@@ -392,10 +538,17 @@ if (isset($_POST["submit"])) {
         <!-- Main Content -->
         <main class="content">
             <section class="widget time-widget">
-            <section class="change-password-section">
-            <div class="change-password-box">
-                <h2>Change Password</h2>
-                <form action="../Users/profile.php" method="POST">
+            <div class="profile-container">
+    <img src="../drawable/logo.png" alt="Profile Logo" width="50">
+    <h3>AST Solid Waste</h3>
+    <p>astsolidwaste@gmail.com</p>
+    <button onclick="showPopup()">Change Password</button>
+</div>
+
+<div class="overlay" onclick="closePopup()"></div>
+<div class="popup">
+    <h2>Change Password</h2>
+    <form action="../Users/profile.php" method="POST">
                     <div class="input-group">
                         <label for="current_password">Current Password</label>
                         <input type="password" id="current_password" name="current_password" required>
@@ -417,11 +570,21 @@ if (isset($_POST["submit"])) {
 
                     <button type="submit" name="submit" class="change-password-button">Change Password</button>
                 </form>
-            </div>
+</div>
         </section>
-            </section>
             
-       
+</div>
+<script>
+        function showPopup() {
+            document.querySelector('.popup').style.display = 'block';
+            document.querySelector('.overlay').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.querySelector('.popup').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+        }
+    </script>
             <script>
              <!-- JavaScript for Sidebar Toggle and Other Functions -->
                 

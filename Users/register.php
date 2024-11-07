@@ -142,7 +142,7 @@ if(isset($_POST["submit"])) {
             <ul class="nav-links">
                 <li><a href="../Public/index.html">Home</a></li>
                 <li><a href="../Public/aboutus.html">About Us</a></li>
-                <li><a href="login.php">Log in</a></li>
+                <li><a href="../Users/login.php">Log in</a></li>
             </ul>
         </nav>
     </header>
