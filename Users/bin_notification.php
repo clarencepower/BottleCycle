@@ -332,11 +332,11 @@
                 <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             </div>
             <nav>
-                <ul class="nav-links">
+            <ul class="nav-links">
                     <li><a href="../Users/dashboard.php"><i class="fas fa-tachometer-alt"></i> <span>Dashboard</span></a></li>
-                    <li><a href="../Users/bin_notification.html"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
+                    <li><a href="../Users/bin_notification.php"><i class="fas fa-bell"></i> <span>Notifications</span></a></li>
                     <li><a href="../Users/profile.php"><i class="fas fa-user"></i> <span>Profile</span></a></li>
-                    <li><a href="../Users/bottlebins.html"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
+                    <li><a href="../Users/bottlebins.php"><i class="fas fa-trash-alt"></i> <span>Bottle Bin</span></a></li>
                     <li><a href="../Users/reports.php"><i class="fas fa-file-alt"></i> <span>Reports</span></a></li>
                     <li><a href="../Users/logout.php"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
@@ -386,70 +386,92 @@
                         sidebar.classList.add('collapsed');
                     });
             </script>
-       <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            function fetchBinStatus() {
-                fetch('../Sensors/get_bin_status.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        const historyTable = document.getElementById("history-body");
-        
-                        // Clear the table first
-                        historyTable.innerHTML = "";
-        
-                        // Variable to keep track of displayed statuses to avoid duplication
-                        let previousStatus = null;
-        
-                        // Loop through the records, filter duplicates, and exclude "Bottle Bin is Empty."
-                        data.forEach((record) => {
-                            if (record.status !== "Bottle Bin is Empty." && record.status !== previousStatus) {
-                                const row = document.createElement("tr");
-        
-                                // Custom Bottle Bin Code format (AST- followed by the actual id)
-                                const customCode = `AST-${String(record.id).padStart(3, '0')}`;
-        
-                                const codeCell = document.createElement("td");
-                                codeCell.textContent = `Bottle Bin Code: ${customCode}`;
-                                row.appendChild(codeCell);
-        
-                                const statusCell = document.createElement("td");
-                                statusCell.textContent = record.status;
-        
-                                // Apply color based on status
-                                if (record.status.toLowerCase().includes("full")) {
-                                    statusCell.style.backgroundColor = "red";
-                                    statusCell.style.color = "white"; // Optional for better contrast
-                                } else if (record.status.toLowerCase().includes("medium")) {
-                                    statusCell.style.backgroundColor = "yellow";
-                                    statusCell.style.color = "black"; // Optional for better contrast
-                                } else if (record.status.toLowerCase().includes("low")) {
-                                    statusCell.style.backgroundColor = "green";
-                                    statusCell.style.color = "white"; // Optional for better contrast
-                                }
-        
-                                row.appendChild(statusCell);
-        
-                                const timestampCell = document.createElement("td");
-                                timestampCell.textContent = record.timestamp;
-                                row.appendChild(timestampCell);
-        
-                                historyTable.appendChild(row);
-        
-                                // Update the previous status to current
-                                previousStatus = record.status;
-                            }
-                        });
-                    })
-                    .catch(error => console.error("Error fetching bin status:", error));
-            }
-        
-            // Initial fetch
-            fetchBinStatus();
-        
-            // Set interval to refresh the bin status every 10 seconds
-            setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
-        });
-        </script>
+ <script>
+document.addEventListener("DOMContentLoaded", function() {
+    function fetchBinStatus() {
+        fetch('../Sensors/get_bin_status.php')
+            .then(response => response.json())
+            .then(data => {
+                const historyTable = document.getElementById("history-body");
+
+                // Clear the table first
+                historyTable.innerHTML = "";
+
+                // Sort data by timestamp in descending order (newest first)
+                data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                // Array to track unique records
+                const uniqueRecords = [];
+                const seenIds = new Set();
+
+                // Filter for the first 10 unique records based on bin ID
+                data.forEach(record => {
+                    // Skip entries with the status "Bottle Bin is Empty"
+                    if (record.status.toLowerCase() === "bottle bin is empty") return;
+
+                    // Only add the record if it hasn't been seen before
+                    if (!seenIds.has(record.id)) {
+                        seenIds.add(record.id);
+                        uniqueRecords.push(record);
+                    }
+                });
+
+                // Slice to the first 10 unique records
+                const recentUniqueRecords = uniqueRecords.slice(0, 10);
+
+                // Display the recent 10 unique records
+                recentUniqueRecords.forEach(record => {
+                    const row = document.createElement("tr");
+
+                    // Display custom bin code
+                    const codeCell = document.createElement("td");
+                    const customCode = `AST-${String(record.id).padStart(3, '0')}`;
+                    codeCell.textContent = `Bottle Bin Code: ${customCode}`;
+                    row.appendChild(codeCell);
+
+                    // Status with color coding
+                    const statusCell = document.createElement("td");
+                    statusCell.textContent = record.status;
+
+                    // Apply color based on status
+                    if (record.status.toLowerCase().includes("full")) {
+                        statusCell.style.backgroundColor = "red";
+                        statusCell.style.color = "white";
+                    } else if (record.status.toLowerCase().includes("medium")) {
+                        statusCell.style.backgroundColor = "yellow";
+                        statusCell.style.color = "black";
+                    } else if (record.status.toLowerCase().includes("low")) {
+                        statusCell.style.backgroundColor = "green";
+                        statusCell.style.color = "white";
+                    }
+
+                    row.appendChild(statusCell);
+
+                    // Display timestamp
+                    const timestampCell = document.createElement("td");
+                    timestampCell.textContent = record.timestamp;
+                    row.appendChild(timestampCell);
+
+                    // Append the row to the table body
+                    historyTable.appendChild(row);
+                });
+            })
+            .catch(error => console.error("Error fetching bin status:", error));
+    }
+
+    // Initial fetch
+    fetchBinStatus();
+
+    // Set interval to refresh the bin status every 10 seconds
+    setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
+});
+
+</script>
+
+
+
+
+
             
             
             
