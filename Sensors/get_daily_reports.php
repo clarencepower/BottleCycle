@@ -13,29 +13,48 @@ if ($conn->connect_error) {
 // Check if a specific date is requested
 $dateFilter = isset($_GET['date']) ? $conn->real_escape_string($_GET['date']) : null;
 
-// Query to fetch daily total counts for each bottle size and the overall total
+// Query to fetch latest daily total counts for each bottle size and the overall total
 $query = "
-    SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
-           COALESCE(SUM(CASE WHEN table_name = 'small_bottle_counts' THEN count ELSE 0 END), 0) AS small_bottles,
-           COALESCE(SUM(CASE WHEN table_name = 'medium_bottle_counts' THEN count ELSE 0 END), 0) AS medium_bottles,
-           COALESCE(SUM(CASE WHEN table_name = 'large_bottle_counts' THEN count ELSE 0 END), 0) AS large_bottles,
-           COALESCE(SUM(count), 0) AS total_bottles
+    SELECT all_dates.date,
+           COALESCE(small_counts.small_bottles, 0) AS small_bottles,
+           COALESCE(medium_counts.medium_bottles, 0) AS medium_bottles,
+           COALESCE(large_counts.large_bottles, 0) AS large_bottles,
+           (COALESCE(small_counts.small_bottles, 0) + COALESCE(medium_counts.medium_bottles, 0) + COALESCE(large_counts.large_bottles, 0)) AS total_bottles
     FROM (
-        SELECT timestamp, count, 'small_bottle_counts' AS table_name FROM small_bottle_counts
-        UNION ALL
-        SELECT timestamp, count, 'medium_bottle_counts' AS table_name FROM medium_bottle_counts
-        UNION ALL
-        SELECT timestamp, count, 'large_bottle_counts' AS table_name FROM large_bottle_counts
-    ) AS all_counts
+        -- Get all unique dates from all tables
+        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM small_bottle_counts
+        UNION
+        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM medium_bottle_counts
+        UNION
+        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM large_bottle_counts
+    ) AS all_dates
+    LEFT JOIN (
+        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
+               count AS small_bottles
+        FROM small_bottle_counts AS t1
+        WHERE id = (SELECT MAX(id) FROM small_bottle_counts WHERE DATE(timestamp) = DATE(t1.timestamp))
+    ) AS small_counts ON all_dates.date = small_counts.date
+    LEFT JOIN (
+        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
+               count AS medium_bottles
+        FROM medium_bottle_counts AS t2
+        WHERE id = (SELECT MAX(id) FROM medium_bottle_counts WHERE DATE(timestamp) = DATE(t2.timestamp))
+    ) AS medium_counts ON all_dates.date = medium_counts.date
+    LEFT JOIN (
+        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
+               count AS large_bottles
+        FROM large_bottle_counts AS t3
+        WHERE id = (SELECT MAX(id) FROM large_bottle_counts WHERE DATE(timestamp) = DATE(t3.timestamp))
+    ) AS large_counts ON all_dates.date = large_counts.date
 ";
 
 // Apply date filtering if a specific date is requested
 if ($dateFilter) {
-    $query .= " WHERE DATE(timestamp) = '$dateFilter'";
+    $query .= " WHERE all_dates.date = '$dateFilter'";
 }
 
-// Group by date and order by descending date
-$query .= " GROUP BY date ORDER BY date DESC";
+// Order by date descending
+$query .= " ORDER BY all_dates.date DESC";
 
 $result = $conn->query($query);
 
