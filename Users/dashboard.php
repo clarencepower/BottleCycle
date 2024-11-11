@@ -371,12 +371,54 @@ require '../auth.php';
         font-size: 12px;
         display: inline-block;
     }
+   /* Flash Effect for Notification Content */
+.flash {
+    animation: flash 1s ease-in-out 0s 3; /* Flash 3 times */
+}
+
+/* Flash Animation Keyframes */
+@keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Notification Item Slide and Fade In */
+.notification-item {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideFadeIn 0.6s ease forwards;
+}
+
+/* Slide and Fade In Animation */
+@keyframes slideFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Modern Notification Badge Animation */
+#notification-badge.pulse {
+    animation: pulseBadge 1s ease-in-out infinite;
+}
+
+/* Badge Pulse Animation */
+@keyframes pulseBadge {
+    0% { transform: scale(1); background-color: #ff3e3e; }
+    50% { transform: scale(1.1); background-color: #ff7070; }
+    100% { transform: scale(1); background-color: #ff3e3e; }
+}
+
 
   
     </style>
 </head>
 <body>
-    <audio id="notification-sound" src="../drawable/notif.mp3" preload="auto"></audio>
+<audio id="notification-sound" src="../drawable/notif.mp3" preload="auto"></audio>
     <div class="dashboard">
         <!-- Sidebar -->
         <aside class="sidebar collapsed">
@@ -401,6 +443,8 @@ require '../auth.php';
 
         <!-- Main Content -->
         <main class="content">
+       <!-- Audio for Notification -->
+    <audio id="notification-sound" src="../drawable/notif.mp3" preload="auto"></audio>
             <!-- Time and Weather Widget -->
             <section class="widget time-widget">
                 <h2>Welcome</h2>
@@ -470,36 +514,41 @@ require '../auth.php';
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-    let previousNotificationCount = 0;
+    document.addEventListener("DOMContentLoaded", function() {
+    let previousLatestTimestamp = null; // Store the timestamp of the latest notification
+    const notificationSound = document.getElementById("notification-sound");
 
     function fetchBinStatus() {
         fetch('../Sensors/get_bin_status.php')
             .then(response => response.json())
             .then(data => {
                 const notificationContent = document.getElementById("notification-content");
-                
-                // Clear the notification content first
-                notificationContent.innerHTML = "";
+                notificationContent.innerHTML = ""; // Clear existing content
 
-                // Filter for "full" notifications and get only the latest 4
+                // Filter for "full" notifications and get the latest 4
                 const fullNotifications = data.filter(record => record.status.includes("full")).slice(0, 4);
 
-                // Check if the number of full notifications has increased
-                if (fullNotifications.length > previousNotificationCount) {
-                    // Play the notification sound
-                    const notificationSound = document.getElementById("notification-sound");
-                    notificationSound.play();
+                // Check if there's a new notification with a different timestamp
+                if (fullNotifications.length > 0) {
+                    const latestTimestamp = fullNotifications[0].timestamp;
+
+                    if (previousLatestTimestamp !== latestTimestamp) {
+                        // Play notification sound for the new timestamp
+                        playNotificationSound();
+
+                        // Update the previous timestamp
+                        previousLatestTimestamp = latestTimestamp;
+                    }
                 }
 
-                // Loop through the recent 4 "full" notifications and display them
-                fullNotifications.forEach((record) => {
+                // Display the recent "full" notifications
+                fullNotifications.forEach(record => {
                     const notificationItem = document.createElement("div");
                     notificationItem.classList.add("notification-item");
 
                     const title = document.createElement("p");
                     title.classList.add("notification-title");
-                    title.textContent = `Bottle Bin ${'0001'} is Full`;
+                    title.textContent = `Bottle Bin ${'CTU-0001'} is Full`;
 
                     const message = document.createElement("p");
                     message.textContent = "Please empty to avoid overflow.";
@@ -515,25 +564,27 @@ require '../auth.php';
                     notificationContent.appendChild(notificationItem);
                 });
 
-                // Update the notification badge count with the number of "full" notifications
+                // Update the notification badge count
                 const notificationBadge = document.getElementById("notification-badge");
                 notificationBadge.textContent = fullNotifications.length;
                 notificationBadge.style.display = fullNotifications.length > 0 ? "inline-block" : "none";
-
-                // Update the previous notification count
-                previousNotificationCount = fullNotifications.length;
             })
             .catch(error => console.error("Error fetching bin status:", error));
     }
 
-    // Initial fetch
-    fetchBinStatus();
+    function playNotificationSound() {
+        notificationSound.currentTime = 0;
+        notificationSound.play().catch((error) => {
+            console.error("Error playing notification sound:", error);
+        });
+    }
 
-    // Set interval to refresh the bin status every 10 seconds
-    setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
+    // Initial fetch and set interval
+    fetchBinStatus();
+    setInterval(fetchBinStatus, 10000); // Fetch every 10 seconds
 });
-        </script>
-        
+
+    </script>
         
 
     <!-- JavaScript for Sidebar Toggle and Other Functions -->

@@ -426,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     // Display custom bin code
                     const codeCell = document.createElement("td");
                     const customCode = `AST-${String(record.id).padStart(3, '0')}`;
-                    codeCell.textContent = `Bottle Bin Code: ${customCode}`;
+                    codeCell.textContent = `Bottle Bin Code: ${'CTU-0001'}`;
                     row.appendChild(codeCell);
 
                     // Status with color coding
@@ -465,8 +465,8 @@ document.addEventListener("DOMContentLoaded", function() {
     // Set interval to refresh the bin status every 10 seconds
     setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
 });
-
 </script>
+
 
 
 

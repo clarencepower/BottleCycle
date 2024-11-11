@@ -1,4 +1,6 @@
 <?php
+header('Content-Type: application/json'); // Ensure JSON response
+
 $servername = "localhost";
 $username = "root";  // Replace with your database username
 $password = "";      // Replace with your database password
@@ -12,8 +14,18 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Fetch the latest 10 bin status records in descending order of id
-$sql = "SELECT id, is_full, timestamp FROM bin_status ORDER BY id DESC LIMIT 10";
+// Fetch the first 10 recent unique bin status records in descending order of timestamp
+$sql = "
+    SELECT id, is_full, timestamp
+    FROM bin_status
+    WHERE (is_full, timestamp) IN (
+        SELECT is_full, MAX(timestamp)
+        FROM bin_status
+        GROUP BY is_full
+    )
+    ORDER BY timestamp DESC
+    LIMIT 10
+";
 $result = $conn->query($sql);
 
 $response = [];
