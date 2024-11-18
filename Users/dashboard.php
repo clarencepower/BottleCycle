@@ -451,7 +451,7 @@ require '../auth.php';
                 <div class="time">
                     <h3 id="current-time">Loading...</h3>
                     <p id="day-of-week">Loading...</p>
-                    <p id="location">Location: Loading...</p>
+                    <p id="location" >Location: Loading...</p>
                 </div>
                 <div class="weather">
                     <img id="weather-icon" src="" alt="Weather Icon" style="display: none;">

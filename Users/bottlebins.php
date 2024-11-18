@@ -641,6 +641,7 @@ element.style {
     position: relative;
     width: 30px;
     height: 30px;
+    pointer-events: auto; /* Ensure the marker itself is clickable */
 }
 
 .pulse-marker::before {
@@ -655,6 +656,43 @@ element.style {
     border-radius: 50%;
     background-color: rgba(255, 0, 0, 0.3);
     animation: pulse-animation 1.5s infinite ease-in-out;
+    pointer-events: none; /* Allow clicks to pass through the pulsing effect */
+}
+
+@keyframes pulse-animation {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+.marker {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background-size: cover;
+}
+
+.pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    margin-left: -30px;
+    margin-top: -30px;
+    border-radius: 50%;
+    background-color: rgba(255, 0, 0, 0.3);
+    animation: pulse-animation 1.5s infinite ease-in-out;
+    pointer-events: none; /* Ensures this does not block clicks */
 }
 
 @keyframes pulse-animation {
@@ -701,8 +739,18 @@ element.style {
                 <input type="text" id="location-search" placeholder="Search for location...">
               <!-- Map Modal with Collapsible Bin List Icon -->
               
+              
     <div id="map-container">
         <div id="map"></div>
+        <div id="deleteConfirmModal" class="modal">
+    <div class="modal-content">
+        <h2>Are you sure you want to delete this bin?</h2>
+        <div class="modal-buttons">
+            <button id="cancelDelete" class="cancel-btn">Cancel</button>
+            <button id="confirmDelete" class="delete-confirm-btn">Delete</button>
+        </div>
+    </div>
+</div>
 
         <!-- Bin List Overlay Icon in Upper Left Corner with Dropdown Style -->
         <div class="bin-list-container">
@@ -760,10 +808,10 @@ toggleBinList.addEventListener('click', () => {
     binListContainer.classList.toggle('expanded');
 });
 
-// Variable to keep track of the current selected marker
+// Variable to keep track of the currently selected pulsing marker
 let currentPulseMarker = null;
+let currentPopup = null;
 
-// Load bins into the bin list
 function loadBinList() {
     fetch('../bins/get_bins.php')
         .then(response => response.json())
@@ -776,8 +824,16 @@ function loadBinList() {
                 binItem.innerText = bin.bin_code;
                 binItem.dataset.lng = bin.longitude;
                 binItem.dataset.lat = bin.latitude;
+                binItem.innerHTML = `
+                    <span>${bin.bin_code}</span>
+                    <button class="delete-btn" onclick="deleteBin('${bin.bin_code}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                `;
+                binItem.dataset.lng = bin.longitude;
+                binItem.dataset.lat = bin.latitude;
 
-                // Click event to navigate to bin location and apply pulsing effect
+                // Click event to navigate to bin location, show pulsing, and display status
                 binItem.addEventListener("click", () => {
                     const lng = parseFloat(binItem.dataset.lng);
                     const lat = parseFloat(binItem.dataset.lat);
@@ -788,29 +844,45 @@ function loadBinList() {
                     // Remove the pulsing effect from the previous marker
                     if (currentPulseMarker) {
                         currentPulseMarker.getElement().classList.remove("pulse-marker");
+                        currentPulseMarker.remove();
+                    }
+                    if (currentPopup) {
+                        currentPopup.remove();
                     }
 
-                    // Create a new marker for the selected bin with pulsing effect
+                    // Create a new pulsing marker for the selected bin
                     const markerElement = document.createElement('div');
-                    markerElement.className = 'pulse-marker';
-                    
-                  
+                    markerElement.className = 'marker';
+                    markerElement.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
+                    markerElement.style.width = '30px';
+                    markerElement.style.height = '30px';
 
-                    // Add the new pulsing marker to the map
+                    const pulseElement = document.createElement('div');
+                    pulseElement.className = 'pulse';
+                    markerElement.appendChild(pulseElement); // Attach the pulse animation
+
+                    // Add the pulsing marker to the map
                     currentPulseMarker = new mapboxgl.Marker(markerElement)
                         .setLngLat([lng, lat])
                         .addTo(map);
-                           // Create and show popup with bin code
-                    currentPopup = new mapboxgl.Popup({ offset: 25 })
-                        .setLngLat([lng, lat])
-                        .setHTML(`<strong>Bin Code:</strong> ${bin.bin_code}`)
-                        .addTo(map);
 
+                    // Fetch and display the latest status in a popup
+                    fetch(`../Sensors/get_bin_status.php?binCode=${bin.bin_code}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const status = data.length ? data[0].status : 'No status data available';
+                            const timestamp = data.length ? data[0].timestamp : 'N/A';
 
-                  
+                            const popupContent = `<strong>Bin Code:</strong> ${bin.bin_code}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
+                            currentPopup = new mapboxgl.Popup({ offset: 25 })
+                                .setLngLat([lng, lat])
+                                .setHTML(popupContent)
+                                .addTo(map);
+                        })
+                        .catch(error => console.error('Error fetching bin status:', error));
                 });
 
-                binList.appendChild(binItem);
+                binList.appendChild(binItem); // Append the bin item to the list
             });
         })
         .catch(error => console.error('Error loading bins:', error));
@@ -872,69 +944,34 @@ document.getElementById('addBinForm').onsubmit = function (event) {
 
 let binToDelete = null; // Variable to store the bin code for deletion
 
-// Function to open the delete confirmation modal
+// Open the delete confirmation modal
 function deleteBin(binCode) {
     binToDelete = binCode;
     document.getElementById('deleteConfirmModal').style.display = 'block';
 }
 
-// Cancel delete action and close modal
-document.getElementById('cancelDelete').onclick = function() {
+// Cancel delete action
+document.getElementById('cancelDelete').onclick = function () {
     document.getElementById('deleteConfirmModal').style.display = 'none';
     binToDelete = null;
 };
 
-// Confirm delete action and close modal
-document.getElementById('confirmDelete').onclick = function() {
+// Confirm delete action
+document.getElementById('confirmDelete').onclick = function () {
     if (binToDelete) {
         fetch(`../bins/delete_bin.php?binCode=${binToDelete}`, {
-            method: 'GET'
+            method: 'GET',
         })
         .then(response => response.text())
         .then(data => {
             document.getElementById('deleteConfirmModal').style.display = 'none';
-            loadBins();  // Reload bins after deletion
+            loadBinList(); // Reload bins after deletion
         })
         .catch(error => console.error('Error:', error));
         binToDelete = null;
     }
 };
 
-// JavaScript to handle modal and form submission
-document.getElementById('addBinBtn').onclick = function () {
-    document.getElementById('addBinModal').style.display = 'block';
-};
-
-document.querySelector('.close-btn').onclick = function () {
-    document.getElementById('addBinModal').style.display = 'none';
-};
-
-// Handle form submission
-document.getElementById('addBinForm').onsubmit = function (event) {
-    event.preventDefault();
-    const formData = new FormData(this);
-
-    fetch('../bins/add_bin.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(data => {
-        document.getElementById('addBinModal').style.display = 'none';
-        showSuccessMessage();
-        loadBins();  // Reload the list of bins
-    })
-    .catch(error => console.error('Error:', error));
-};
-
-// Show success message
-function showSuccessMessage() {
-    const successMessage = document.getElementById('successMessage');
-    successMessage.style.display = 'block';
-    setTimeout(() => {
-        successMessage.style.display = 'none';
-    }, 3000);  // Hide after 3 seconds
-}
 
         </script>
   <script>
@@ -976,21 +1013,44 @@ function showSuccessMessage() {
     })
     .catch(error => console.error('Error loading bins:', error));
 
-        function addTrashBinMarker(lng, lat, binCode) {
-            const el = document.createElement('div');
-            el.className = 'trash-bin-marker';
-            el.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
-            el.style.width = '30px';
-            el.style.height = '30px';
-            el.style.backgroundSize = '100%';
+    function addTrashBinMarker(lng, lat, binCode) {
+    // Create main marker element
+    const markerElement = document.createElement('div');
+    markerElement.className = 'marker';
+    markerElement.style.width = '30px';
+    markerElement.style.height = '30px';
+    markerElement.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
+    markerElement.style.backgroundSize = '100%';
+    markerElement.style.position = 'relative';
 
-            new mapboxgl.Marker(el)
-                .setLngLat([lng, lat])
-                .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`Bin Code: ${binCode}`))
-                .addTo(map);
-        }
+    // Create pulsing animation element as a child of the marker element
+    const pulseElement = document.createElement('div');
+    pulseElement.className = 'pulse';
+    markerElement.appendChild(pulseElement); // Add pulse as a child to ensure it doesn’t block the marker
 
-        window.onload = loadBinList;
+    // Add marker to the map
+    const marker = new mapboxgl.Marker(markerElement)
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+    // Add click event for marker to fetch and display the latest bin status
+    marker.getElement().addEventListener('click', () => {
+        fetch(`../Sensors/get_bin_status.php`)
+            .then(response => response.json())
+            .then(data => {
+                const status = data.length ? data[0].status : 'No status data available';
+                const timestamp = data.length ? data[0].timestamp : 'N/A';
+
+                const popupContent = `<strong>Bin Code:</strong> ${binCode}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
+                new mapboxgl.Popup({ offset: 25 })
+                    .setLngLat([lng, lat])
+                    .setHTML(popupContent)
+                    .addTo(map);
+            })
+            .catch(error => console.error('Error fetching bin status:', error));
+    });
+}
+
 
     // Place marker on map click, fetch address, and set form latitude/longitude values
     map.on('click', (e) => {
@@ -1052,20 +1112,38 @@ function showSuccessMessage() {
     });
 
     // Function to add a marker for a trash bin on the map
-    function addTrashBinMarker(lng, lat, binCode) {
-        const el = document.createElement('div');
-        el.className = 'trash-bin-marker';
-        el.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
-        el.style.width = '30px';
-        el.style.height = '30px';
-        el.style.backgroundSize = '100%';
+function addTrashBinMarker(lng, lat, binCode) {
+    const el = document.createElement('div');
+    el.className = 'trash-bin-marker';
+    el.style.backgroundImage = 'url(../drawable/trashbinlogo.png)';
+    el.style.width = '30px';
+    el.style.height = '30px';
+    el.style.backgroundSize = '100%';
 
-        new mapboxgl.Marker(el)
-            .setLngLat([lng, lat])
-            .setPopup(new mapboxgl.Popup({ offset: 25 }).setText(`Bin Code: ${binCode}`))
-            .addTo(map);
-    }
+    const marker = new mapboxgl.Marker(el)
+        .setLngLat([lng, lat])
+        .addTo(map);
 
+    // Add click event to fetch and display the latest bin status
+    marker.getElement().addEventListener('click', () => {
+        fetch(`../Sensors/get_bin_status.php`)
+            .then(response => response.json())
+            .then(data => {
+                // Create the popup content from the latest status
+                const status = data.length ? data[0].status : 'No status data available';
+                const timestamp = data.length ? data[0].timestamp : 'N/A';
+
+                const popupContent = `<strong>Bin Code:</strong> ${binCode}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
+
+                // Attach the popup to the marker with the fetched content
+                new mapboxgl.Popup({ offset: 25 })
+                    .setLngLat([lng, lat])
+                    .setHTML(popupContent)
+                    .addTo(map);
+            })
+            .catch(error => console.error('Error fetching bin status:', error));
+    });
+}
     // Fetch saved bottle bins and add them to the map on page load
     function loadBins() {
         fetch('../bins/get_bins.php')

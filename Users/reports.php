@@ -357,6 +357,37 @@ require '../auth.php';
 .search-container button:hover {
     background-color: #004108;
 }
+.modal {
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: 8px;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
  </style>
 </head>
 <body class="bod">
@@ -388,6 +419,34 @@ require '../auth.php';
                         <label for="date-search">Search by Date:</label>
                         <input type="date" id="date-search">
                         <button onclick="searchByDate()">Search</button>
+               <!-- View By Button -->
+<button id="viewByBtn" onclick="openModal()">View By</button>
+
+<!-- Modal Structure -->
+<div id="viewByModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h4>Select View Type</h4>
+        <label for="viewByDropdown">View By:</label>
+        <select id="viewByDropdown" onchange="fetchDataByView()">
+            <option value="day">Day</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+        </select>
+
+        <label for="yearDropdown">Year:</label>
+        <select id="yearDropdown" onchange="fetchDataByYear()">
+            <!-- Populate this dynamically with available years -->
+        </select>
+
+        <div id="viewByResults">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+</div>
+    </select>
+                        <button onclick="window.location.href='generate_report.php'">Generate PDF Report</button>
+
                     </div>
                     <div id="report-table-container">
                         <table id="report-table">
@@ -412,6 +471,92 @@ require '../auth.php';
 
             </section>
             
+
+            <script>
+    // Open the Modal
+    function openModal() {
+        document.getElementById("viewByModal").style.display = "block";
+        populateYearDropdown(); // Populate the year dropdown when the modal is opened
+    }
+
+    // Close the Modal
+    function closeModal() {
+        document.getElementById("viewByModal").style.display = "none";
+    }
+
+    // Populate Year Dropdown
+    function populateYearDropdown() {
+        const yearDropdown = document.getElementById("yearDropdown");
+        const currentYear = new Date().getFullYear();
+        yearDropdown.innerHTML = "";
+
+        for (let year = currentYear; year >= currentYear - 10; year--) {
+            const option = document.createElement("option");
+            option.value = year;
+            option.textContent = year;
+            yearDropdown.appendChild(option);
+        }
+    }
+
+    // Fetch Data Based on View Selection
+    function fetchDataByView() {
+    const viewBy = document.getElementById("viewByDropdown").value;
+    const year = document.getElementById("yearDropdown").value;
+
+    console.log(`Fetching data for viewBy: ${viewBy}, year: ${year}`);
+
+    fetch(`../Sensors/get_reports_by_view.php?viewBy=${viewBy}&year=${year}`)
+        .then(response => {
+            console.log("Raw response:", response);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Parsed data:", data);
+            displayResults(data, viewBy);
+        })
+        .catch(error => console.error("Error fetching data:", error));
+}
+
+function displayResults(data, viewBy) {
+    console.log("Data to display:", data);
+    const resultsContainer = document.getElementById("viewByResults");
+    resultsContainer.innerHTML = ""; // Clear previous results
+
+    if (data.length === 0) {
+        resultsContainer.innerHTML = "<p>No data available for the selected period.</p>";
+        return;
+    }
+
+    const table = document.createElement("table");
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>${viewBy === "day" ? "Date" : viewBy === "month" ? "Month" : viewBy === "week" ? "Week" : "Year"}</th>
+                <th>Small Bottles</th>
+                <th>Medium Bottles</th>
+                <th>Large Bottles</th>
+                <th>Total Bottles</th>
+            </tr>
+        </thead>
+    `;
+
+    const tbody = document.createElement("tbody");
+    data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${row.date}</td>
+            <td>${row.small_bottles}</td>
+            <td>${row.medium_bottles}</td>
+            <td>${row.large_bottles}</td>
+            <td>${row.total_bottles}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    resultsContainer.appendChild(table);
+}
+
+</script>
        <!-- Link to Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
             <script>
