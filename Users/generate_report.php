@@ -80,6 +80,9 @@ $pdf->SetSubject('Bottle Collection Data');
 $pdf->SetMargins(10, 10, 10);
 $pdf->AddPage();
 
+// Set timezone to Philippines Standard Time (PST)
+date_default_timezone_set('Asia/Manila');
+
 // Add watermark
 $logo = '../drawable/headerlogo.jpg';
 $pdf->SetAlpha(0.3); // Set transparency
@@ -89,7 +92,24 @@ $pdf->SetAlpha(); // Reset transparency
 // Title and styling
 $pdf->SetFont('helvetica', 'B', 18);
 $pdf->Cell(0, 15, 'Bottle Cycle - Daily Bottle Counts Report', 0, 1, 'C');
-$pdf->Ln(20);
+$pdf->Ln(10);
+
+// Add the current date
+$currentDate = date('F j, Y');  // Format: Month day, Year (e.g., November 21, 2024)
+$pdf->SetFont('helvetica', 'I', 12); // Italic font for the date
+$pdf->Cell(0, 10, 'Date: ' . $currentDate, 0, 1, 'C'); // Center aligned date
+$pdf->Ln(5); // Add some space after the date
+
+// Add the current time (PST)
+$currentTime = date('h:i A');  // Format: Hour:Minute AM/PM (e.g., 12:45 PM)
+$pdf->SetFont('helvetica', 'I', 12); // Italic font for the time
+$pdf->Cell(0, 10, 'Time: ' . $currentTime, 0, 1, 'C'); // Center aligned time
+$pdf->Ln(10); // Add some space after the time
+
+// Add Bin Code above the table
+$pdf->SetFont('helvetica', 'I', 12); // Italic font for the Bin Code
+$pdf->Cell(0, 10, 'Bin Code: CTU-0001', 0, 1, 'L'); // Left aligned Bin Code
+$pdf->Ln(10); // Add some space after the Bin Code
 
 // Table header styling
 $pdf->SetFont('helvetica', 'B', 12);
@@ -120,4 +140,5 @@ $pdf->Cell(0, 10, 'Page ' . $pdf->getAliasNumPage() . '/' . $pdf->getAliasNbPage
 
 // Output PDF as a download
 $pdf->Output('Bottle_Counts_Report.pdf', 'D');
+
 ?>

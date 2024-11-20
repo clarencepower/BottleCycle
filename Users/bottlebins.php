@@ -709,6 +709,47 @@ element.style {
         opacity: 1;
     }
 }
+.bin-list-item {
+    display: flex;
+    justify-content: space-between; /* Space between bin code and delete button */
+    align-items: center; /* Vertically align items */
+    padding: 10px;
+    border-bottom: 1px solid #ddd; /* Separator between items */
+    cursor: pointer; /* Makes the entire item clickable */
+}
+
+.bin-list-item:hover {
+    background-color: #f0f0f0; /* Highlight item on hover */
+}
+
+.bin-list-item span {
+    flex-grow: 1; /* Allow the span to take available space */
+    font-size: 16px;
+    font-weight: bold;
+    color: #005709; /* Bin code text color */
+    cursor: pointer; /* Make the bin code clickable */
+}
+
+.delete-btn {
+    background: none;
+    border: none;
+    color: #ffca00;
+    cursor: pointer;
+    font-size: 16px; /* Adjust the font size */
+    padding: 4px 4px; /* Adjust the padding for size */
+  /* You can set a specific width if needed */
+
+     /* You can set a specific height if needed */
+}
+
+.delete-btn i {
+    pointer-events: none; /* Prevent accidental clicks on the icon itself */
+}
+
+.bin-list-container.expanded .fa-chevron-down {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease;
+}
 
     </style>
 </head>
@@ -754,12 +795,16 @@ element.style {
 
         <!-- Bin List Overlay Icon in Upper Left Corner with Dropdown Style -->
         <div class="bin-list-container">
+            
             <button class="bin-list-btn" id="toggleBinList">
-                Bottle Bin List <i class="fas fa-chevron-down"></i>
+                Bottle Bin List <i class="fas fa-chevron-down" style="padding-right: 60px;"></i>
             </button>
             <div id="binList" class="bin-list-items"></div>
+           
         </div>
         <button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
+                        <i class="fas fa-trash"></i>
+                    </button>
     </div>
 
                 <!-- Add Bin Modal -->
@@ -797,7 +842,10 @@ element.style {
                     </div>
                 </div>
             </section>
+
             <script>
+                
+                
              // Select elements
 const binListContainer = document.querySelector('.bin-list-container');
 const toggleBinList = document.getElementById('toggleBinList');
@@ -819,22 +867,22 @@ function loadBinList() {
             binList.innerHTML = ""; // Clear list before populating
 
             data.forEach(bin => {
+                // Create a container for the bin item
                 const binItem = document.createElement("div");
                 binItem.classList.add("bin-list-item");
-                binItem.innerText = bin.bin_code;
                 binItem.dataset.lng = bin.longitude;
                 binItem.dataset.lat = bin.latitude;
+
+                // Set the inner HTML for the bin item
                 binItem.innerHTML = `
-                    <span>${bin.bin_code}</span>
+                    <span class="bin-code">${bin.bin_code}</span>
                     <button class="delete-btn" onclick="deleteBin('${bin.bin_code}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 `;
-                binItem.dataset.lng = bin.longitude;
-                binItem.dataset.lat = bin.latitude;
 
-                // Click event to navigate to bin location, show pulsing, and display status
-                binItem.addEventListener("click", () => {
+                // Add a click event to navigate to the bin location on the map
+                binItem.querySelector(".bin-code").addEventListener("click", () => {
                     const lng = parseFloat(binItem.dataset.lng);
                     const lat = parseFloat(binItem.dataset.lat);
 
@@ -894,6 +942,7 @@ document.addEventListener('DOMContentLoaded', loadBinList);
 
 
 
+
             </script>
     <!-- JavaScript for Sidebar Hover Effect and Time/Weather -->
     <script>
@@ -936,13 +985,14 @@ document.getElementById('addBinForm').onsubmit = function (event) {
         console.log(data);  // Check for success or error message
         document.getElementById('addBinModal').style.display = 'none';
         loadBins();  // Reload the list of bins
+        
     })
     .catch(error => console.error('Error:', error));
 };
 
-
-
 let binToDelete = null; // Variable to store the bin code for deletion
+let currentBin = null; // Store the current bin being viewed
+let currentMarker = null; // Reference to the current marker on the map
 
 // Open the delete confirmation modal
 function deleteBin(binCode) {
@@ -956,7 +1006,6 @@ document.getElementById('cancelDelete').onclick = function () {
     binToDelete = null;
 };
 
-// Confirm delete action
 document.getElementById('confirmDelete').onclick = function () {
     if (binToDelete) {
         fetch(`../bins/delete_bin.php?binCode=${binToDelete}`, {
@@ -964,14 +1013,46 @@ document.getElementById('confirmDelete').onclick = function () {
         })
         .then(response => response.text())
         .then(data => {
+            // Close the delete confirmation modal
             document.getElementById('deleteConfirmModal').style.display = 'none';
-            loadBinList(); // Reload bins after deletion
+
+            // Remove the bin from the list and map
+            removeBinFromList(binToDelete);
+            if (currentBin === binToDelete) {
+                if (currentMarker) {
+                    currentMarker.remove();
+                }
+                currentBin = null;
+                currentMarker = null;
+            }
+
+            // Display a success message
+            alert('Bin successfully deleted!');
+
+            // Refresh the map page
+            location.reload();
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the bin. Please try again.');
+        });
+
+        // Clear the binToDelete variable
         binToDelete = null;
     }
 };
 
+
+
+// Remove the deleted bin from the bin list
+function removeBinFromList(binCode) {
+    const binItems = document.querySelectorAll('.bin-list-item');
+    binItems.forEach(item => {
+        if (item.innerText.includes(binCode)) {
+            item.remove();
+        }
+    });
+}
 
         </script>
   <script>
@@ -981,7 +1062,7 @@ document.getElementById('confirmDelete').onclick = function () {
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [120.9842, 14.5995], // Center on Manila, Philippines
+        center: [123.81738889, 10.72560217], // Center on Manila, Philippines
         zoom: 12
     });
 
@@ -1198,6 +1279,7 @@ function addTrashBinMarker(lng, lat, binCode) {
         setTimeout(() => {
             successMessage.style.display = 'none';
         }, 3000);
+        
     }
 </script>
             

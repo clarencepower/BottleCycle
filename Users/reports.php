@@ -388,6 +388,13 @@ require '../auth.php';
         text-decoration: none;
         cursor: pointer;
     }
+    .drop{
+        background-color: #005709;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    }
  </style>
 </head>
 <body class="bod">
@@ -428,14 +435,14 @@ require '../auth.php';
         <span class="close" onclick="closeModal()">&times;</span>
         <h4>Select View Type</h4>
         <label for="viewByDropdown">View By:</label>
-        <select id="viewByDropdown" onchange="fetchDataByView()">
+        <select class="drop" id="viewByDropdown" onchange="fetchDataByView()">
             <option value="day">Day</option>
             <option value="month">Month</option>
             <option value="year">Year</option>
         </select>
 
         <label for="yearDropdown">Year:</label>
-        <select id="yearDropdown" onchange="fetchDataByYear()">
+        <select class="drop" id="yearDropdown" onchange="fetchDataByYear()">
             <!-- Populate this dynamically with available years -->
         </select>
 
