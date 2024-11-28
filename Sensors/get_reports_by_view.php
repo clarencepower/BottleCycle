@@ -28,33 +28,17 @@ if ($viewBy === 'month') {
     $groupBy = "YEAR(timestamp)";
 }
 
-// Fetch the latest data for each source table using subqueries for latest IDs
+// Fetch data from the `ctu_0001` table, considering the viewBy grouping
 $query = "
     SELECT 
-        DATE_FORMAT(combined.timestamp, '$dateFormat') AS date,
-        SUM(CASE WHEN combined.source = 'small' THEN combined.count ELSE 0 END) AS small_bottles,
-        SUM(CASE WHEN combined.source = 'medium' THEN combined.count ELSE 0 END) AS medium_bottles,
-        SUM(CASE WHEN combined.source = 'large' THEN combined.count ELSE 0 END) AS large_bottles
-    FROM (
-        SELECT s.timestamp, s.count, 'small' AS source
-        FROM small_bottle_counts s
-        WHERE s.id IN (SELECT MAX(id) FROM small_bottle_counts GROUP BY DATE(timestamp))
-        
-        UNION ALL
-
-        SELECT m.timestamp, m.count, 'medium' AS source
-        FROM medium_bottle_counts m
-        WHERE m.id IN (SELECT MAX(id) FROM medium_bottle_counts GROUP BY DATE(timestamp))
-        
-        UNION ALL
-
-        SELECT l.timestamp, l.count, 'large' AS source
-        FROM large_bottle_counts l
-        WHERE l.id IN (SELECT MAX(id) FROM large_bottle_counts GROUP BY DATE(timestamp))
-    ) AS combined
-    WHERE YEAR(combined.timestamp) = '$year'
+        DATE_FORMAT(timestamp, '$dateFormat') AS date,
+        SUM(small_bottle_counts) AS small_bottles,
+        SUM(medium_bottle_counts) AS medium_bottles,
+        SUM(large_bottle_counts) AS large_bottles
+    FROM ctu_0001
+    WHERE YEAR(timestamp) = '$year'
     GROUP BY $groupBy
-    ORDER BY combined.timestamp ASC";
+    ORDER BY $groupBy ASC";
 
 // Execute query
 $result = $conn->query($query);

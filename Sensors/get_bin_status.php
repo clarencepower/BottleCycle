@@ -42,12 +42,6 @@ if ($result->num_rows > 0) {
             case 1:
                 $status_message = "Bottle Bin Code: AST-{0001} is full. Please empty to avoid overflow.";
                 break;
-            case 2:
-                $status_message = "Medium - more space to occupy.";
-                break;
-            case 3:
-                $status_message = "Bottle bin is low - more spaces to occupy.";
-                break;
             default:
                 $status_message = "Bottle Bin is Empty.";
                 break;

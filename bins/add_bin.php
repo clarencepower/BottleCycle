@@ -22,9 +22,20 @@ $stmt->bind_param("ssdd", $binCode, $address, $latitude, $longitude);
 
 if ($stmt->execute()) {
     echo json_encode(["success" => true]);
+    $tableName = "bin_" . strtoupper($binCode); // Table name based on bin code
+$sql = "CREATE TABLE IF NOT EXISTS $tableName (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    small_bottle_counts INT(11) DEFAULT NULL,
+    medium_bottle_counts INT(11) DEFAULT NULL,
+    large_bottle_counts INT(11) DEFAULT NULL,
+    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)";
 } else {
     echo json_encode(["success" => false, "message" => "Failed to insert data"]);
 }
+// SQL to create a new table based on bin code
+
+
 
 $stmt->close();
 $conn->close();

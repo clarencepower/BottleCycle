@@ -1062,7 +1062,7 @@ function removeBinFromList(binCode) {
     const map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [123.81738889, 10.72560217], // Center on Manila, Philippines
+        center: [123.81738889, 10.72560217], //Center to Ctu University 
         zoom: 12
     });
 

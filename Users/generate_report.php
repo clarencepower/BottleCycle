@@ -12,45 +12,25 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Get date filter if set
 $dateFilter = isset($_GET['date']) ? $conn->real_escape_string($_GET['date']) : null;
 
+// Query to fetch data from `ctu_0001` table
 $query = "
-    SELECT all_dates.date,
-           COALESCE(small_counts.small_bottles, 0) AS small_bottles,
-           COALESCE(medium_counts.medium_bottles, 0) AS medium_bottles,
-           COALESCE(large_counts.large_bottles, 0) AS large_bottles,
-           (COALESCE(small_counts.small_bottles, 0) + COALESCE(medium_counts.medium_bottles, 0) + COALESCE(large_counts.large_bottles, 0)) AS total_bottles
-    FROM (
-        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM small_bottle_counts
-        UNION
-        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM medium_bottle_counts
-        UNION
-        SELECT DISTINCT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date FROM large_bottle_counts
-    ) AS all_dates
-    LEFT JOIN (
-        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
-               count AS small_bottles
-        FROM small_bottle_counts AS t1
-        WHERE id = (SELECT MAX(id) FROM small_bottle_counts WHERE DATE(timestamp) = DATE(t1.timestamp))
-    ) AS small_counts ON all_dates.date = small_counts.date
-    LEFT JOIN (
-        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
-               count AS medium_bottles
-        FROM medium_bottle_counts AS t2
-        WHERE id = (SELECT MAX(id) FROM medium_bottle_counts WHERE DATE(timestamp) = DATE(t2.timestamp))
-    ) AS medium_counts ON all_dates.date = medium_counts.date
-    LEFT JOIN (
-        SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
-               count AS large_bottles
-        FROM large_bottle_counts AS t3
-        WHERE id = (SELECT MAX(id) FROM large_bottle_counts WHERE DATE(timestamp) = DATE(t3.timestamp))
-    ) AS large_counts ON all_dates.date = large_counts.date
+    SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
+           COALESCE(small_bottle_counts, 0) AS small_bottles,
+           COALESCE(medium_bottle_counts, 0) AS medium_bottles,
+           COALESCE(large_bottle_counts, 0) AS large_bottles,
+           (COALESCE(small_bottle_counts, 0) + COALESCE(medium_bottle_counts, 0) + COALESCE(large_bottle_counts, 0)) AS total_bottles
+    FROM ctu_0001
 ";
 
+// Apply date filter if provided
 if ($dateFilter) {
-    $query .= " WHERE all_dates.date = '$dateFilter'";
+    $query .= " WHERE DATE(timestamp) = '$dateFilter'";
 }
-$query .= " ORDER BY all_dates.date DESC";
+
+$query .= " ORDER BY timestamp DESC";  // Order by date
 
 $result = $conn->query($query);
 
@@ -72,12 +52,12 @@ if ($result && $result->num_rows > 0) {
 $conn->close();
 
 // Initialize TCPDF
-$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, 'A4', true, 'UTF-8', false);
 $pdf->SetCreator(PDF_CREATOR);
 $pdf->SetAuthor('Bottle Cycle');
 $pdf->SetTitle('Bottle Counts Report');
 $pdf->SetSubject('Bottle Collection Data');
-$pdf->SetMargins(10, 10, 10);
+$pdf->SetMargins(16, 16, 16);  // Adjust left, top, and right margins
 $pdf->AddPage();
 
 // Set timezone to Philippines Standard Time (PST)
@@ -85,7 +65,7 @@ date_default_timezone_set('Asia/Manila');
 
 // Add watermark
 $logo = '../drawable/headerlogo.jpg';
-$pdf->SetAlpha(0.3); // Set transparency
+$pdf->SetAlpha(0.3); // Set transparency for logo
 $pdf->Image($logo, 30, 60, 150, 0, '', '', '', false, 300, '', false, false, 0, false, false, false);
 $pdf->SetAlpha(); // Reset transparency
 
@@ -107,38 +87,31 @@ $pdf->Cell(0, 10, 'Time: ' . $currentTime, 0, 1, 'C'); // Center aligned time
 $pdf->Ln(10); // Add some space after the time
 
 // Add Bin Code above the table
-$pdf->SetFont('helvetica', 'I', 12); // Italic font for the Bin Code
+$pdf->SetFont('helvetica', 'B', 12);  // Bold font for Bin Code
 $pdf->Cell(0, 10, 'Bin Code: CTU-0001', 0, 1, 'L'); // Left aligned Bin Code
-$pdf->Ln(10); // Add some space after the Bin Code
+$pdf->Ln(5); // Add some space after the Bin Code
 
-// Table header styling
-$pdf->SetFont('helvetica', 'B', 12);
-$pdf->SetFillColor(230, 230, 230);
-$pdf->Cell(35, 10, 'Date', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Small Bottles', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Medium Bottles', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Large Bottles', 1, 0, 'C', 1);
-$pdf->Cell(35, 10, 'Total Bottles', 1, 1, 'C', 1);
+// Table header with padding and margins
+$pdf->SetFont('helvetica', 'B', 11);
+$pdf->SetCellPadding(4);  // Add padding inside the cells
 
-// Table data with alternating row colors
-$pdf->SetFont('helvetica', '', 12);
-$fill = false;
+// Set column widths (adjusted to fit within the A4 page size)
+$pdf->Cell(35, 10, 'Date', 1, 0, 'C');  // Column for Date
+$pdf->Cell(35, 10, 'Small Bottles', 1, 0, 'C');  // Column for Small Bottles
+$pdf->Cell(35, 10, 'Medium Bottles', 1, 0, 'C'); // Column for Medium Bottles
+$pdf->Cell(35, 10, 'Large Bottles', 1, 0, 'C');  // Column for Large Bottles
+$pdf->Cell(35, 10, 'Total Bottles', 1, 1, 'C');  // Column for Total Bottles
+
+// Table data
+$pdf->SetFont('helvetica', '', 11);
 foreach ($data as $row) {
-    $pdf->SetFillColor($fill ? 245 : 255, $fill ? 245 : 255, $fill ? 245 : 255);
-    $pdf->Cell(35, 10, $row['date'], 1, 0, 'C', $fill);
-    $pdf->Cell(35, 10, $row['small_bottles'], 1, 0, 'C', $fill);
-    $pdf->Cell(35, 10, $row['medium_bottles'], 1, 0, 'C', $fill);
-    $pdf->Cell(35, 10, $row['large_bottles'], 1, 0, 'C', $fill);
-    $pdf->Cell(35, 10, $row['total_bottles'], 1, 1, 'C', $fill);
-    $fill = !$fill; // Toggle fill color
+    $pdf->Cell(35, 10, $row['date'], 1, 0, 'C');  // Date cell
+    $pdf->Cell(35, 10, $row['small_bottles'], 1, 0, 'C');  // Small Bottles cell
+    $pdf->Cell(35, 10, $row['medium_bottles'], 1, 0, 'C'); // Medium Bottles cell
+    $pdf->Cell(35, 10, $row['large_bottles'], 1, 0, 'C');  // Large Bottles cell
+    $pdf->Cell(35, 10, $row['total_bottles'], 1, 1, 'C');  // Total Bottles cell
 }
 
-// Footer with page number
-$pdf->SetY(-15);
-$pdf->SetFont('helvetica', 'I', 8);
-$pdf->Cell(0, 10, 'Page ' . $pdf->getAliasNumPage() . '/' . $pdf->getAliasNbPages(), 0, 0, 'C');
-
-// Output PDF as a download
-$pdf->Output('Bottle_Counts_Report.pdf', 'D');
-
+// Output the PDF
+$pdf->Output('Bottle_Counts_Report.pdf', 'I');
 ?>
