@@ -6,50 +6,50 @@ $dbname = "bottlecycle-ctu";
 
 // Connect to the database
 $conn = new mysqli($servername, $username, $password, $dbname);
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Check if a specific date is requested
-$dateFilter = isset($_GET['date']) ? $conn->real_escape_string($_GET['date']) : null;
+// Get the bin_code and date from the query parameters
+$bin_code = isset($_GET['bin_code']) ? $_GET['bin_code'] : '';
+$date = isset($_GET['date']) ? $_GET['date'] : '';
 
-// Query to fetch the latest daily total counts from the new `ctu_0001` table
+// Query to fetch data from the bin_summary table for the selected bin_code and date
 $query = "
     SELECT DATE(timestamp) AS date,
-           COALESCE(small_bottle_counts, 0) AS small_bottles,
-           COALESCE(medium_bottle_counts, 0) AS medium_bottles,
-           COALESCE(large_bottle_counts, 0) AS large_bottles,
-           (COALESCE(small_bottle_counts, 0) + COALESCE(medium_bottle_counts, 0) + COALESCE(large_bottle_counts, 0)) AS total_bottles
-    FROM ctu_0001
-";
+           SUM(total_small) AS total_small,
+           SUM(total_medium) AS total_medium,
+           SUM(total_large) AS total_large,
+           SUM(total_bottles) AS total_bottles
+    FROM bin_summary
+    WHERE bin_code = ?";
 
-// Apply date filtering if a specific date is requested
-if ($dateFilter) {
-    $query .= " WHERE DATE(timestamp) = '$dateFilter'";
+if ($date) {
+    $query .= " AND DATE(timestamp) = ?";
 }
 
-// Order by date descending
-$query .= " ORDER BY DATE(timestamp) DESC";
+$query .= " GROUP BY bin_code, DATE(timestamp)";  // Group by bin_code and date to aggregate data
 
-// Execute the query
-$result = $conn->query($query);
+$stmt = $conn->prepare($query);
+if ($date) {
+    $stmt->bind_param("ss", $bin_code, $date);
+} else {
+    $stmt->bind_param("s", $bin_code);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
 
 $data = [];
-if ($result && $result->num_rows > 0) {
+if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
-        $data[] = [
-            'date' => $row['date'],
-            'small_bottles' => $row['small_bottles'],
-            'medium_bottles' => $row['medium_bottles'],
-            'large_bottles' => $row['large_bottles'],
-            'total_bottles' => $row['total_bottles']
-        ];
+        $data[] = $row;
     }
 }
 
-// Return data as JSON
-header('Content-Type: application/json');
-echo json_encode($data);
+echo json_encode($data);  // Return the data as JSON
 
+$stmt->close();
 $conn->close();
 ?>

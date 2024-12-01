@@ -8,29 +8,32 @@ $dbname = "bottlecycle-ctu";
 
 // Connect to the database
 $conn = new mysqli($servername, $username, $password, $dbname);
+
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Get date filter if set
+// Get bin_code and date filter from GET parameters
+$bin_code = isset($_GET['bin_code']) ? $conn->real_escape_string($_GET['bin_code']) : null;
 $dateFilter = isset($_GET['date']) ? $conn->real_escape_string($_GET['date']) : null;
 
-// Query to fetch data from `ctu_0001` table
+// Query to fetch data from `bin_summary` table
 $query = "
     SELECT DATE_FORMAT(timestamp, '%Y-%m-%d') AS date,
-           COALESCE(small_bottle_counts, 0) AS small_bottles,
-           COALESCE(medium_bottle_counts, 0) AS medium_bottles,
-           COALESCE(large_bottle_counts, 0) AS large_bottles,
-           (COALESCE(small_bottle_counts, 0) + COALESCE(medium_bottle_counts, 0) + COALESCE(large_bottle_counts, 0)) AS total_bottles
-    FROM ctu_0001
+           total_small,
+           total_medium,
+           total_large,
+           total_bottles
+    FROM bin_summary
+    WHERE bin_code = '$bin_code'
 ";
 
 // Apply date filter if provided
 if ($dateFilter) {
-    $query .= " WHERE DATE(timestamp) = '$dateFilter'";
+    $query .= " AND DATE(timestamp) = '$dateFilter'";
 }
 
-$query .= " ORDER BY timestamp DESC";  // Order by date
+$query .= " ORDER BY timestamp DESC";  // Order by timestamp
 
 $result = $conn->query($query);
 
@@ -39,9 +42,9 @@ if ($result && $result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $data[] = [
             'date' => $row['date'],
-            'small_bottles' => $row['small_bottles'],
-            'medium_bottles' => $row['medium_bottles'],
-            'large_bottles' => $row['large_bottles'],
+            'small_bottles' => $row['total_small'],
+            'medium_bottles' => $row['total_medium'],
+            'large_bottles' => $row['total_large'],
             'total_bottles' => $row['total_bottles']
         ];
     }
@@ -63,7 +66,7 @@ $pdf->AddPage();
 // Set timezone to Philippines Standard Time (PST)
 date_default_timezone_set('Asia/Manila');
 
-// Add watermark
+// Add watermark (Logo image)
 $logo = '../drawable/headerlogo.jpg';
 $pdf->SetAlpha(0.3); // Set transparency for logo
 $pdf->Image($logo, 30, 60, 150, 0, '', '', '', false, 300, '', false, false, 0, false, false, false);
@@ -88,30 +91,27 @@ $pdf->Ln(10); // Add some space after the time
 
 // Add Bin Code above the table
 $pdf->SetFont('helvetica', 'B', 12);  // Bold font for Bin Code
-$pdf->Cell(0, 10, 'Bin Code: CTU-0001', 0, 1, 'L'); // Left aligned Bin Code
+$pdf->Cell(0, 10, 'Bin Code: ' . $bin_code, 0, 1, 'L'); // Left aligned Bin Code
 $pdf->Ln(5); // Add some space after the Bin Code
 
 // Table header with padding and margins
-$pdf->SetFont('helvetica', 'B', 11);
-$pdf->SetCellPadding(4);  // Add padding inside the cells
+$pdf->SetFont('helvetica', 'B', 12); // Table header font
+$pdf->Cell(40, 10, 'Date', 1, 0, 'C');
+$pdf->Cell(40, 10, 'Small Bottles', 1, 0, 'C');
+$pdf->Cell(40, 10, 'Medium Bottles', 1, 0, 'C');
+$pdf->Cell(40, 10, 'Large Bottles', 1, 0, 'C');
+$pdf->Cell(40, 10, 'Total Bottles', 1, 1, 'C');
+$pdf->SetFont('helvetica', '', 12); // Regular font for table rows
 
-// Set column widths (adjusted to fit within the A4 page size)
-$pdf->Cell(35, 10, 'Date', 1, 0, 'C');  // Column for Date
-$pdf->Cell(35, 10, 'Small Bottles', 1, 0, 'C');  // Column for Small Bottles
-$pdf->Cell(35, 10, 'Medium Bottles', 1, 0, 'C'); // Column for Medium Bottles
-$pdf->Cell(35, 10, 'Large Bottles', 1, 0, 'C');  // Column for Large Bottles
-$pdf->Cell(35, 10, 'Total Bottles', 1, 1, 'C');  // Column for Total Bottles
-
-// Table data
-$pdf->SetFont('helvetica', '', 11);
+// Loop through data and populate table rows
 foreach ($data as $row) {
-    $pdf->Cell(35, 10, $row['date'], 1, 0, 'C');  // Date cell
-    $pdf->Cell(35, 10, $row['small_bottles'], 1, 0, 'C');  // Small Bottles cell
-    $pdf->Cell(35, 10, $row['medium_bottles'], 1, 0, 'C'); // Medium Bottles cell
-    $pdf->Cell(35, 10, $row['large_bottles'], 1, 0, 'C');  // Large Bottles cell
-    $pdf->Cell(35, 10, $row['total_bottles'], 1, 1, 'C');  // Total Bottles cell
+    $pdf->Cell(40, 10, $row['date'], 1, 0, 'C');
+    $pdf->Cell(40, 10, $row['small_bottles'], 1, 0, 'C');
+    $pdf->Cell(40, 10, $row['medium_bottles'], 1, 0, 'C');
+    $pdf->Cell(40, 10, $row['large_bottles'], 1, 0, 'C');
+    $pdf->Cell(40, 10, $row['total_bottles'], 1, 1, 'C');
 }
 
 // Output the PDF
-$pdf->Output('Bottle_Counts_Report.pdf', 'I');
+$pdf->Output('Bottle_Report_' . $bin_code . '.pdf', 'I'); // 'I' for inline view, 'D' for download
 ?>

@@ -1,6 +1,7 @@
 <?php
 require '../config.php';
 require '../auth.php';
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -423,38 +424,23 @@ require '../auth.php';
                 <section class="widget report-widget">
                     <h4>Daily Bottle Collection Report</h4>
                     <div class="search-container">
-                        <label for="date-search">Search by Date:</label>
-                        <input type="date" id="date-search">
-                        <button onclick="searchByDate()">Search</button>
-               <!-- View By Button -->
-<button id="viewByBtn" onclick="openModal()">View By</button>
+    <label for="date-search">Search by Date:</label>
+    <input type="date" id="date-search">
+    <button onclick="searchByDate()">Search</button>
 
-<!-- Modal Structure -->
-<div id="viewByModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal()">&times;</span>
-        <h4>Select View Type</h4>
-        <label for="viewByDropdown">View By:</label>
-        <select class="drop" id="viewByDropdown" onchange="fetchDataByView()">
-            <option value="day">Day</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
-        </select>
-
-        <label for="yearDropdown">Year:</label>
-        <select class="drop" id="yearDropdown" onchange="fetchDataByYear()">
-            <!-- Populate this dynamically with available years -->
-        </select>
-
-        <div id="viewByResults">
-            <!-- Results will be displayed here -->
-        </div>
-    </div>
-</div>
+    <!-- Bin Selection Dropdown -->
+    <label for="bin-dropdown">Select Bin:</label>
+    <select id="bin-dropdown" onchange="fetchDataByBin()">
+        <option value="">Select Bin</option>
+        <!-- The bin options will be populated dynamically -->
     </select>
-                        <button onclick="window.location.href='generate_report.php'">Generate PDF Report</button>
 
-                    </div>
+
+    <!-- Generate Report Button -->
+    <button onclick="generatePDFReport()">Generate PDF Report</button>
+</div>
+
+
                     <div id="report-table-container">
                         <table id="report-table">
                             <thead>
@@ -471,224 +457,75 @@ require '../auth.php';
                             </tbody>
                         </table>
                     </div>
+
                     <div>
                         <canvas id="report-chart" width="400" height="200"></canvas>
                     </div>
                 </section>
-
             </section>
-            
+        </main>
+    </div>
 
-            <script>
-    // Open the Modal
-    function openModal() {
-        document.getElementById("viewByModal").style.display = "block";
-        populateYearDropdown(); // Populate the year dropdown when the modal is opened
-    }
-
-    // Close the Modal
-    function closeModal() {
-        document.getElementById("viewByModal").style.display = "none";
-    }
-
-    // Populate Year Dropdown
-    function populateYearDropdown() {
-        const yearDropdown = document.getElementById("yearDropdown");
-        const currentYear = new Date().getFullYear();
-        yearDropdown.innerHTML = "";
-
-        for (let year = currentYear; year >= currentYear - 10; year--) {
-            const option = document.createElement("option");
-            option.value = year;
-            option.textContent = year;
-            yearDropdown.appendChild(option);
+    <script>
+ // Fetch bin IDs for dropdown selection
+        function fetchBinIds() {
+            fetch('../Sensors/get_bin_ids.php')
+                .then(response => response.json())
+                .then(data => {
+                    const binDropdown = document.getElementById('bin-dropdown');
+                    data.forEach(bin => {
+                        const option = document.createElement('option');
+                        option.value = bin.bin_code;
+                        option.textContent = bin.bin_code;
+                        binDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching bin IDs:', error));
         }
-    }
 
-    // Fetch Data Based on View Selection
-    function fetchDataByView() {
-    const viewBy = document.getElementById("viewByDropdown").value;
-    const year = document.getElementById("yearDropdown").value;
+        // Fetch data for the selected bin and populate the table
+        function fetchDataByBin() {
+            const binId = document.getElementById('bin-dropdown').value;
+            const date = document.getElementById('date-search').value;
 
-    console.log(`Fetching data for viewBy: ${viewBy}, year: ${year}`);
-
-    fetch(`../Sensors/get_reports_by_view.php?viewBy=${viewBy}&year=${year}`)
-        .then(response => {
-            console.log("Raw response:", response);
-            return response.json();
-        })
-        .then(data => {
-            console.log("Parsed data:", data);
-            displayResults(data, viewBy);
-        })
-        .catch(error => console.error("Error fetching data:", error));
-}
-
-function displayResults(data, viewBy) {
-    console.log("Data to display:", data);
-    const resultsContainer = document.getElementById("viewByResults");
-    resultsContainer.innerHTML = ""; // Clear previous results
-
-    if (data.length === 0) {
-        resultsContainer.innerHTML = "<p>No data available for the selected period.</p>";
-        return;
-    }
-
-    const table = document.createElement("table");
-    table.innerHTML = `
-        <thead>
-            <tr>
-                <th>${viewBy === "day" ? "Date" : viewBy === "month" ? "Month" : viewBy === "week" ? "Week" : "Year"}</th>
-                <th>Small Bottles</th>
-                <th>Medium Bottles</th>
-                <th>Large Bottles</th>
-                <th>Total Bottles</th>
-            </tr>
-        </thead>
-    `;
-
-    const tbody = document.createElement("tbody");
-    data.forEach(row => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${row.date}</td>
-            <td>${row.small_bottles}</td>
-            <td>${row.medium_bottles}</td>
-            <td>${row.large_bottles}</td>
-            <td>${row.total_bottles}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    resultsContainer.appendChild(table);
-}
-
-</script>
-       <!-- Link to Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <script>
-             <!-- JavaScript for Sidebar Toggle and Other Functions -->
-                
-                    function toggleSidebar() {
-                        const sidebar = document.querySelector('.sidebar');
-                        sidebar.classList.toggle('collapsed');
-                    }
-            
-                    // Expand sidebar on hover
-                    const sidebar = document.querySelector('.sidebar');
-                    sidebar.addEventListener('mouseenter', () => {
-                        sidebar.classList.remove('collapsed');
-                    });
-            
-                    // Collapse sidebar when the mouse leaves
-                    sidebar.addEventListener('mouseleave', () => {
-                        sidebar.classList.add('collapsed');
-                    });
-            </script>
-            <script>
-       // Function to fetch and display reports based on a specific date
-       function searchByDate() {
-    const date = document.getElementById("date-search").value;
-    if (!date) {
-        alert("Please select a date to search.");
-        return;
-    }
-
-    fetch(`../Sensors/get_daily_reports.php?date=${date}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data && data.length > 0) {
-                populateReportTable(data);  // Display the data in the table
-                renderReportChart(data);    // Update the chart with the data
-            } else {
-                // If no data is returned, clear the table and chart, and show a message
-                document.getElementById('report-table-body').innerHTML = '<tr><td colspan="5">No records found for this date.</td></tr>';
-                renderReportChart([]);  // Clear the chart
-            }
-        })
-        .catch(error => console.error('Error fetching daily report:', error));
-}
-// Function to fetch all daily report data
-function fetchDailyReport() {
-    fetch('../Sensors/get_daily_reports.php')
-        .then(response => response.json())
-        .then(data => {
-            populateReportTable(data);
-            renderReportChart(data);
-        })
-        .catch(error => console.error('Error fetching daily report:', error));
-}
-
-// Populate report table with data
-function populateReportTable(data) {
-    const tableBody = document.getElementById('report-table-body');
-    tableBody.innerHTML = '';  // Clear previous rows
-
-    data.forEach(row => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${row.date}</td>
-            <td>${row.small_bottles}</td>
-            <td>${row.medium_bottles}</td>
-            <td>${row.large_bottles}</td>
-            <td>${row.total_bottles}</td>
-        `;
-        tableBody.appendChild(tr);
-    });
-}
-
-// Render chart with report data
-function renderReportChart(data) {
-    const dates = data.map(row => row.date);
-    const smallBottles = data.map(row => row.small_bottles);
-    const mediumBottles = data.map(row => row.medium_bottles);
-    const largeBottles = data.map(row => row.large_bottles);
-    const totalBottles = data.map(row => row.total_bottles);
-
-    const ctx = document.getElementById('report-chart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: dates,
-            datasets: [
-                {
-                    label: 'Small Bottles',
-                    data: smallBottles,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                },
-                {
-                    label: 'Medium Bottles',
-                    data: mediumBottles,
-                    backgroundColor: 'rgba(153, 102, 255, 0.6)',
-                },
-                {
-                    label: 'Large Bottles',
-                    data: largeBottles,
-                    backgroundColor: 'rgba(255, 159, 64, 0.6)',
-                },
-                {
-                    label: 'Total Bottles',
-                    data: totalBottles,
-                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                x: { title: { display: true, text: 'Date' } },
-                y: { title: { display: true, text: 'Bottles Collected' } }
+            if (binId) {
+                const url = `../Sensors/get_daily_reports.php?bin_code=${binId}&date=${date}`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        const reportTableBody = document.getElementById('report-table-body');
+                        reportTableBody.innerHTML = '';  // Clear previous table rows
+                        
+                        data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${row.date}</td>
+                                <td>${row.total_small}</td>
+                                <td>${row.total_medium}</td>
+                                <td>${row.total_large}</td>
+                                <td>${row.total_bottles}</td>
+                            `;
+                            reportTableBody.appendChild(tr);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching bin data:', error));
             }
         }
-    });
+
+        function generatePDFReport() {
+    const binId = document.getElementById('bin-dropdown').value;
+    const date = document.getElementById('date-search').value;
+
+    if (binId) {
+        const url = `../Users/generate_report.php?bin_code=${binId}&date=${date}`;
+        window.location.href = url;  // Trigger the report generation by redirecting
+    } else {
+        alert("Please select a bin.");
+    }
 }
 
-// Fetch all report data immediately when the page loads
-fetchDailyReport();
+        // Initialize by fetching bin IDs
+        fetchBinIds();
     </script>
-            
-                
-    
-        
+
 </body>
-</html>

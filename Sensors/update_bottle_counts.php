@@ -1,73 +1,112 @@
 <?php
-$servername = "localhost";
-$username = "root";  // Default username for local server
-$password = "";      // Default password for local server
-$dbname = "bottlecycle-ctu";
+// Database credentials
+$servername = "localhost";  // Change this to your MySQL server
+$username = "root";         // Change this to your MySQL username
+$password = "";             // Change this to your MySQL password
+$dbname = "bottlecycle-ctu";    // Change this to your database name
 
-// Connect to the database
+// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check the connection
+// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 // Get data from URL parameters
-$small_count = isset($_GET['small_count']) ? intval($_GET['small_count']) : null;
-$medium_count = isset($_GET['medium_count']) ? intval($_GET['medium_count']) : null;
-$large_count = isset($_GET['large_count']) ? intval($_GET['large_count']) : null;
-$is_full = isset($_GET['is_full']) ? intval($_GET['is_full']) : null; // Modified to handle as integer
+$bin_id = $_GET['bin_id'];
+$size_type = $_GET['size_type'];
+$quantity = $_GET['quantity'];
+$is_full = isset($_GET['is_full']) ? $_GET['is_full'] : null;
 
-// Function to check if the count is new or different before inserting
-function insertIfNewCount($conn, $small_count, $medium_count, $large_count) {
-    // Query the last inserted values for the counts
-    $stmt = $conn->prepare("SELECT small_bottle_counts, medium_bottle_counts, large_bottle_counts FROM CTU_0001 ORDER BY id DESC LIMIT 1");
-    $stmt->execute();
-    $stmt->bind_result($last_small_count, $last_medium_count, $last_large_count);
-    $stmt->fetch();
-    $stmt->close();
-
-    // Only insert the new counts if they differ from the last values
-    if ($small_count !== $last_small_count || $medium_count !== $last_medium_count || $large_count !== $last_large_count) {
-        // Prepare the insert statement
-        $stmt = $conn->prepare("INSERT INTO CTU_0001 (small_bottle_counts, medium_bottle_counts, large_bottle_counts) VALUES (?, ?, ?)");
-        $stmt->bind_param("iii", $small_count, $medium_count, $large_count);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-// Insert data if it's different from the last recorded values
-if ($small_count !== null || $medium_count !== null || $large_count !== null) {
-    insertIfNewCount($conn, $small_count, $medium_count, $large_count);
-}
-
-// Function to check and insert bin status if it has changed
-function insertIfNewStatus($conn, $status) {
-    // Query the last inserted bin status
-    $stmt = $conn->prepare("SELECT is_full FROM bin_status ORDER BY id DESC LIMIT 1");
-    $stmt->execute();
-    $stmt->bind_result($last_status);
-    $stmt->fetch();
-    $stmt->close();
-
-    // Only insert the new status if it's different from the last status
-    if ($status !== $last_status) {
-        // Prepare the insert statement for bin status
-        $stmt = $conn->prepare("INSERT INTO bin_status (is_full) VALUES (?)");
-        $stmt->bind_param("i", $status);
-        $stmt->execute();
-        $stmt->close();
-    }
-}
-
-// Insert bin status if it has changed
+// If bin status is provided, update the bin status
 if ($is_full !== null) {
-    insertIfNewStatus($conn, $is_full);
+    $stmt = $conn->prepare("INSERT INTO bin_status (bin_id, is_full) VALUES (?, ?)");
+    $stmt->bind_param("si", $bin_id, $is_full);
+    if ($stmt->execute()) {
+        echo "Bin status updated successfully";
+    } else {
+        echo "Error updating bin status: " . $stmt->error;
+    }
+    $stmt->close();
 }
 
-// Close the database connection
-$conn->close();
+// Insert bottle count data (only if size_type and quantity are provided)
+if ($size_type && isset($quantity)) {
+    $stmt = $conn->prepare("INSERT INTO bottle_bin_data (bin_id, size_type, quantity) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssi", $bin_id, $size_type, $quantity);
+    
+    if ($stmt->execute()) {
+        echo "Bottle count inserted successfully";
+    } else {
+        echo "Error inserting bottle count: " . $stmt->error;
+    }
+    $stmt->close();
+}
 
-echo "Data updated successfully";
+// Fetch summed quantities for each bin_id, size_type, and date (timestamp per day)
+$sql = "
+    SELECT bin_id, 
+           DATE(timestamp) AS date,
+           SUM(CASE WHEN size_type = 'small' THEN quantity ELSE 0 END) AS total_small,
+           SUM(CASE WHEN size_type = 'medium' THEN quantity ELSE 0 END) AS total_medium,
+           SUM(CASE WHEN size_type = 'large' THEN quantity ELSE 0 END) AS total_large
+    FROM bottle_bin_data
+    GROUP BY bin_id, DATE(timestamp)
+";
+
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+    // Loop through each row and insert or update into the bin_summary table
+    while ($row = $result->fetch_assoc()) {
+        $binId = $row['bin_id'];
+        $date = $row['date'];
+        $totalSmall = $row['total_small'];
+        $totalMedium = $row['total_medium'];
+        $totalLarge = $row['total_large'];
+        
+        // Calculate total bottles by adding up small, medium, and large bottles
+        $totalBottles = $totalSmall + $totalMedium + $totalLarge;
+        
+        // Check if a record already exists for the same bin_id and date
+        $checkSql = "SELECT * FROM bin_summary WHERE bin_code = '$binId' AND DATE(timestamp) = '$date'";
+        $checkResult = $conn->query($checkSql);
+        
+        if ($checkResult->num_rows > 0) {
+            // If record exists, update it
+            $updateSql = "
+                UPDATE bin_summary
+                SET total_small = $totalSmall, 
+                    total_medium = $totalMedium,
+                    total_large = $totalLarge,
+                    total_bottles = $totalBottles,
+                    timestamp = CURRENT_TIMESTAMP
+                WHERE bin_code = '$binId' AND DATE(timestamp) = '$date'
+            ";
+            if ($conn->query($updateSql) === TRUE) {
+                echo "Record updated successfully for bin_id: $binId on $date\n";
+            } else {
+                echo "Error: " . $updateSql . "\n" . $conn->error;
+            }
+        } else {
+            // If no record exists, insert a new one
+            $insertSql = "
+                INSERT INTO bin_summary (bin_code, total_small, total_medium, total_large, total_bottles, timestamp)
+                VALUES ('$binId', $totalSmall, $totalMedium, $totalLarge, $totalBottles, CURRENT_TIMESTAMP)
+            ";
+            if ($conn->query($insertSql) === TRUE) {
+                echo "New record created successfully for bin_id: $binId on $date\n";
+            } else {
+                echo "Error: " . $insertSql . "\n" . $conn->error;
+            }
+        }
+    }
+} else {
+    echo "0 results";
+}
+
+
+// Close connection
+$conn->close();
 ?>

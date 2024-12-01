@@ -4,6 +4,7 @@ $username = "root";
 $password = "";
 $dbname = "bottlecycle-ctu";
 
+// Connect to the database
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {
@@ -28,14 +29,14 @@ if ($viewBy === 'month') {
     $groupBy = "YEAR(timestamp)";
 }
 
-// Fetch data from the `ctu_0001` table, considering the viewBy grouping
+// Fetch data from the `bin_ctu0001` table, considering the viewBy grouping
 $query = "
     SELECT 
         DATE_FORMAT(timestamp, '$dateFormat') AS date,
-        SUM(small_bottle_counts) AS small_bottles,
-        SUM(medium_bottle_counts) AS medium_bottles,
-        SUM(large_bottle_counts) AS large_bottles
-    FROM ctu_0001
+        SUM(CASE WHEN size_type = 'small' THEN quantity ELSE 0 END) AS small_bottles,
+        SUM(CASE WHEN size_type = 'medium' THEN quantity ELSE 0 END) AS medium_bottles,
+        SUM(CASE WHEN size_type = 'large' THEN quantity ELSE 0 END) AS large_bottles
+    FROM bin_ctu0001
     WHERE YEAR(timestamp) = '$year'
     GROUP BY $groupBy
     ORDER BY $groupBy ASC";
