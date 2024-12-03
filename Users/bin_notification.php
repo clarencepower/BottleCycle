@@ -342,29 +342,27 @@
                 </ul>
             </nav>
         </aside>
-
-        <!-- Main Content -->
         <main class="content">
-            <section class="widget time-widget">
-                <div class="notification-container">
-                    <i class="bell-icon">&#128276;</i> <!-- Bell icon (Unicode bell) -->
-                    <span class="badge" id="notification-badge"></span>
-                    <h2>Bin Status Notification History</h2>
-                </div>
-                <table id="history-table">
-                    <thead>
-                        <tr>
-                            <th>Bottle Bin Code</th>
-                            <th>Status</th>
-                            <th>Timestamp</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-body">
-                        <!-- Records will be dynamically populated here -->
-                    </tbody>
-                </table>
-                </div>
-            </section>
+    <section class="widget time-widget">
+        <div class="notification-container">
+            <i class="bell-icon">&#128276;</i> <!-- Bell icon (Unicode bell) -->
+            <span class="badge" id="notification-badge"></span>
+            <h2>Bin Status Notification History</h2>
+        </div>
+        <table id="history-table">
+            <thead>
+                <tr>
+                    <th>Bottle Bin Code</th>
+                    <th>Status</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="history-body">
+                <!-- Records will be dynamically populated here -->
+            </tbody>
+        </table>
+    </section>
+</main>
             
        
             <script>
@@ -386,85 +384,57 @@
                         sidebar.classList.add('collapsed');
                     });
             </script>
- <script>
-document.addEventListener("DOMContentLoaded", function() {
-    function fetchBinStatus() {
-        fetch('../Sensors/get_bin_status.php')
-            .then(response => response.json())
-            .then(data => {
-                const historyTable = document.getElementById("history-body");
+ <<script>
+// Function to fetch and display the 15 latest bin status records
+function fetchBinStatus() {
+    // Make an AJAX call to fetch the data from the PHP script
+    fetch('../Sensors/get_bin_status.php')  // Path to the PHP file
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error fetching data:', data.error);
+                return;
+            }
 
-                // Clear the table first
-                historyTable.innerHTML = "";
+            const tableBody = document.getElementById('history-body');
+            tableBody.innerHTML = ''; // Clear any existing data
 
-                // Sort data by timestamp in descending order (newest first)
-                data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            data.forEach(status => {
+                // Create a new row for each record
+                const row = document.createElement('tr');
 
-                // Array to track unique records
-                const uniqueRecords = [];
-                const seenIds = new Set();
+                // Create and populate the cells for each column
+                const binCodeCell = document.createElement('td');
+                binCodeCell.textContent = status.bin_id; // Bottle Bin Code
+                row.appendChild(binCodeCell);
 
-                // Filter for the first 10 unique records based on bin ID
-                data.forEach(record => {
-                    // Skip entries with the status "Bottle Bin is Empty"
-                    if (record.status.toLowerCase() === "bottle bin is empty") return;
+                const statusCell = document.createElement('td');
+                statusCell.textContent = status.is_full == 1 ? 'Bottle Bin is Full' : 'Bottle Bin was Picked Up';
+                statusCell.style.backgroundColor = status.is_full == 1 ? 'red' : 'green'; // Set background color based on status
+                row.appendChild(statusCell);
 
-                    // Only add the record if it hasn't been seen before
-                    if (!seenIds.has(record.id)) {
-                        seenIds.add(record.id);
-                        uniqueRecords.push(record);
-                    }
-                });
+                const timestampCell = document.createElement('td');
+                timestampCell.textContent = status.timestamp; // Timestamp
+                row.appendChild(timestampCell);
 
-                // Slice to the first 10 unique records
-                const recentUniqueRecords = uniqueRecords.slice(0, 10);
+                // Append the row to the table body
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+        });
+}
 
-                // Display the recent 10 unique records
-                recentUniqueRecords.forEach(record => {
-                    const row = document.createElement("tr");
-
-                    // Display custom bin code
-                    const codeCell = document.createElement("td");
-                    const customCode = `AST-${String(record.id).padStart(3, '0')}`;
-                    codeCell.textContent = `Bottle Bin Code: ${'CTU-0001'}`;
-                    row.appendChild(codeCell);
-
-                    // Status with color coding
-                    const statusCell = document.createElement("td");
-                    statusCell.textContent = record.status;
-
-                    // Apply color based on status
-                    if (record.status.toLowerCase().includes("full")) {
-                        statusCell.style.backgroundColor = "red";
-                        statusCell.style.color = "white";
-                    } else if (record.status.toLowerCase().includes("medium")) {
-                        statusCell.style.backgroundColor = "yellow";
-                        statusCell.style.color = "black";
-                    } else if (record.status.toLowerCase().includes("low")) {
-                        statusCell.style.backgroundColor = "green";
-                        statusCell.style.color = "white";
-                    }
-
-                    row.appendChild(statusCell);
-
-                    // Display timestamp
-                    const timestampCell = document.createElement("td");
-                    timestampCell.textContent = record.timestamp;
-                    row.appendChild(timestampCell);
-
-                    // Append the row to the table body
-                    historyTable.appendChild(row);
-                });
-            })
-            .catch(error => console.error("Error fetching bin status:", error));
-    }
-
-    // Initial fetch
+// Fetch and display bin status when the page is loaded
+window.onload = function() {
     fetchBinStatus();
+};
 
-    // Set interval to refresh the bin status every 10 seconds
-    setInterval(fetchBinStatus, 10000); // 10000 ms = 10 seconds
-});
+
+
+</script>
+
 </script>
 
 

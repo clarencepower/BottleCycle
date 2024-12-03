@@ -17,7 +17,8 @@ $date = isset($_GET['date']) ? $_GET['date'] : '';
 
 // Query to fetch data from the bin_summary table for the selected bin_code and date
 $query = "
-    SELECT DATE(timestamp) AS date,
+    SELECT timestamp,
+           bin_code,  
            SUM(total_small) AS total_small,
            SUM(total_medium) AS total_medium,
            SUM(total_large) AS total_large,

@@ -1,67 +1,37 @@
 <?php
-header('Content-Type: application/json'); // Ensure JSON response
 
 $servername = "localhost";
 $username = "root";  // Replace with your database username
 $password = "";      // Replace with your database password
-$dbname = "bottlecycle-ctu"; // Replace with your database name
+$dbname = "bottlecycle-ctu";
 
-// Create connection
-$conn = new mysqli($servername, $username, $password, $dbname);
+// Set the response type to JSON
+header('Content-Type: application/json');
 
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// Database connection (update with your DB credentials)
+$mysqli = new mysqli($servername, $username , $password, $dbname);
 
-// Fetch the first 10 recent unique bin status records in descending order of timestamp
-$sql = "
-    SELECT id, is_full, timestamp
-    FROM bin_status
-    WHERE (is_full, timestamp) IN (
-        SELECT is_full, MAX(timestamp)
-        FROM bin_status
-        GROUP BY is_full
-    )
-    ORDER BY timestamp DESC
-    LIMIT 10
-";
-$result = $conn->query($sql);
+// SQL query to get the 15 latest bin status records based on 'id'
+$sql = "SELECT bin_id, is_full, timestamp FROM bin_status ORDER BY id DESC LIMIT 1";
 
-$response = [];
+$result = $mysqli->query($sql);
 
-if ($result->num_rows > 0) {
+// Check if the query was successful
+if ($result) {
+    $status_data = [];
     while ($row = $result->fetch_assoc()) {
-        $status_message = "";
-
-        // Format the timestamp to 12-hour format with AM/PM
-        $formatted_timestamp = date("Y-m-d h:i A", strtotime($row['timestamp']));
-
-        // Generate message based on is_full value
-        switch ($row['is_full']) {
-            case 1:
-                $status_message = "Bottle Bin Code: AST-{0001} is full. Please empty to avoid overflow.";
-                break;
-            default:
-                $status_message = "Bottle Bin is Empty.";
-                break;
-        }
-
-        $response[] = [
-            'id' => $row['id'],
-            'status' => $status_message,
-            'timestamp' => $formatted_timestamp
+        $status = ($row['is_full'] == 1) ? 'This Bin is Full' : 'Bin was Collected';
+        $status_data[] = [
+            'bin_id' => $row['bin_id'],
+            'status' => $status,
+            'timestamp' => $row['timestamp']
         ];
     }
+    echo json_encode($status_data); // Return the result as a JSON response
 } else {
-    $response[] = [
-        'id' => null,
-        'status' => "No data found.",
-        'timestamp' => null
-    ];
+    echo json_encode(['error' => 'Failed to fetch data']);
 }
 
-echo json_encode($response);
-
-$conn->close();
+// Close the database connection
+$mysqli->close();
 ?>

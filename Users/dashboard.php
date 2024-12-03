@@ -413,7 +413,44 @@ require '../auth.php';
     100% { transform: scale(1); background-color: #ff3e3e; }
 }
 
+.notification-item.full {
+    background-color: red; /* Red for Full bins */
+}
 
+.notification-item.picked-up {
+    background-color: green; /* Green for Picked Up bins */
+}
+.notification-item {
+    padding: 10px;
+    margin: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.notification-title {
+    font-weight: bold;
+}
+
+.notification-timestamp {
+    font-size: 0.8em;
+    color: gray;
+}
+
+.notification-item p {
+    margin: 5px 0;
+}
+
+/* Full Bin (red) */
+.notification-item.full {
+    background-color: #ffdddd;
+    border-left: 5px solid red;
+}
+
+/* Picked Up Bin (green) */
+.notification-item.picked-up {
+    background-color: #ddffdd;
+    border-left: 5px solid green;
+}
   
     </style>
 </head>
@@ -464,6 +501,12 @@ require '../auth.php';
             <section class="widget bottle-count-widget">
                 <div class="bottle-size">
                     <h4>Bottles Collected</h4>
+                    <!-- Bin Selection Dropdown -->
+                    <button onclick="fetchAllBinsData()">All Bins</button>
+    <select id="bin-dropdown" onchange="fetchDataByBin()">
+        <option value="">Select Bin</option>
+        <!-- The bin options will be populated dynamically -->
+    </select>
                     <div class="bottle-box">
                         <h5>Small Bottles</h5>
                         <p id="small-bottle-count">Loading...</p>
@@ -485,7 +528,7 @@ require '../auth.php';
 
             <!-- Notifications Widget -->
            
-              <!-- Notifications Widget -->
+             <!-- Notifications Widget -->
 <section class="widget notification-widget">
     <h4>Notifications</h4>
     <div id="notification-container">
@@ -498,8 +541,8 @@ require '../auth.php';
         <i class="fas fa-bell"></i>
         <span id="notification-badge" class="badge">0</span>
     </div>
-   
 </section>
+
         
 
             <!-- Calendar Widget -->
@@ -514,23 +557,23 @@ require '../auth.php';
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     let previousLatestTimestamp = null; // Store the timestamp of the latest notification
     const notificationSound = document.getElementById("notification-sound");
 
     function fetchBinStatus() {
-        fetch('../Sensors/get_bin_status.php')
+        fetch('../Sensors/fetch_bin_status.php')  // Path to your PHP script
             .then(response => response.json())
             .then(data => {
                 const notificationContent = document.getElementById("notification-content");
                 notificationContent.innerHTML = ""; // Clear existing content
 
-                // Filter for "full" notifications and get the latest 4
-                const fullNotifications = data.filter(record => record.status.includes("full")).slice(0, 4);
+                // Get the first 5 "Full" or "Picked Up" bin notifications
+                const fullOrPickedUpNotifications = data.full_or_picked_up_bins.slice(0, 5);
 
                 // Check if there's a new notification with a different timestamp
-                if (fullNotifications.length > 0) {
-                    const latestTimestamp = fullNotifications[0].timestamp;
+                if (fullOrPickedUpNotifications.length > 0) {
+                    const latestTimestamp = fullOrPickedUpNotifications[0].timestamp;
 
                     if (previousLatestTimestamp !== latestTimestamp) {
                         // Play notification sound for the new timestamp
@@ -541,17 +584,25 @@ require '../auth.php';
                     }
                 }
 
-                // Display the recent "full" notifications
-                fullNotifications.forEach(record => {
+                // Display the recent "Full" or "Picked Up" notifications
+                fullOrPickedUpNotifications.forEach(record => {
                     const notificationItem = document.createElement("div");
                     notificationItem.classList.add("notification-item");
 
                     const title = document.createElement("p");
                     title.classList.add("notification-title");
-                    title.textContent = `Bottle Bin ${'CTU-0001'} is Full`;
+
+                    // Handle Full vs. Picked Up status
+                    if (record.is_full === 1) {
+                        title.textContent = `Bottle Bin ${record.bin_id} is Full`; // Dynamic bin_id for Full
+                    } else {
+                        title.textContent = `Bottle Bin ${record.bin_id} was Picked Up`; // Dynamic bin_id for Picked Up
+                    }
 
                     const message = document.createElement("p");
-                    message.textContent = "Please empty to avoid overflow.";
+                    message.textContent = record.is_full === 1
+                        ? "Please empty to avoid overflow."  // Message for Full bin
+                        : "Bin has been emptied.";           // Message for Picked Up bin
 
                     const timestamp = document.createElement("p");
                     timestamp.classList.add("notification-timestamp");
@@ -566,8 +617,8 @@ require '../auth.php';
 
                 // Update the notification badge count
                 const notificationBadge = document.getElementById("notification-badge");
-                notificationBadge.textContent = fullNotifications.length;
-                notificationBadge.style.display = fullNotifications.length > 0 ? "inline-block" : "none";
+                notificationBadge.textContent = fullOrPickedUpNotifications.length;
+                notificationBadge.style.display = fullOrPickedUpNotifications.length > 0 ? "inline-block" : "none";
             })
             .catch(error => console.error("Error fetching bin status:", error));
     }
@@ -583,6 +634,8 @@ require '../auth.php';
     fetchBinStatus();
     setInterval(fetchBinStatus, 10000); // Fetch every 10 seconds
 });
+
+
 
     </script>
         
@@ -673,23 +726,70 @@ require '../auth.php';
         setInterval(getLocationAndFetchWeather, 600000); // Update weather every 10 minutes
 
         // Function to fetch bottle counts and update the widget
-function fetchBottleCounts() {
-    fetch('../Sensors/get_bottle_count.php') // Adjust to your PHP file path
+// Fetch bin IDs for dropdown selection
+function fetchBinIds() {
+        fetch('../Sensors/get_bin_ids.php')
+            .then(response => response.json())
+            .then(data => {
+                const binDropdown = document.getElementById('bin-dropdown');
+                data.forEach(bin => {
+                    const option = document.createElement('option');
+                    option.value = bin.bin_code;
+                    option.textContent = bin.bin_code;
+                    binDropdown.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error fetching bin IDs:', error));
+    }
+
+    // Fetch data for the selected bin and populate the bottle counts
+    function fetchDataByBin() {
+        const binId = document.getElementById('bin-dropdown').value;
+
+        if (binId) {
+            const url = `../Sensors/get_daily_reports.php?bin_code=${binId}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Update bottle counts
+                    if (data && data.length > 0) {
+                        const latestData = data[0]; // Assuming the first entry contains the latest data
+                        document.getElementById('small-bottle-count').textContent = latestData.total_small || 0;
+                        document.getElementById('medium-bottle-count').textContent = latestData.total_medium || 0;
+                        document.getElementById('large-bottle-count').textContent = latestData.total_large || 0;
+                        document.getElementById('total-counts').textContent = latestData.total_bottles || 0;
+                    } else {
+                        document.getElementById('small-bottle-count').textContent = '0';
+                        document.getElementById('medium-bottle-count').textContent = '0';
+                        document.getElementById('large-bottle-count').textContent = '0';
+                        document.getElementById('total-counts').textContent = '0';
+                    }
+                })
+                .catch(error => console.error('Error fetching bin data:', error));
+        }
+    }
+
+    // Initialize by fetching bin IDs
+    fetchBinIds();
+
+    // Function to fetch total bottles collected for all bins
+function fetchAllBinsData() {
+    // Make an AJAX call to the server to fetch the total bottle data
+    fetch('../Sensors/fetch_all_bins.php') // Replace with your actual API endpoint
         .then(response => response.json())
         .then(data => {
-            document.getElementById('small-bottle-count').textContent = data.small || '0';
-            document.getElementById('medium-bottle-count').textContent = data.medium || '0';
-            document.getElementById('large-bottle-count').textContent = data.large || '0';
-            document.getElementById('total-counts').textContent = data.total || '0';
+            // Update the UI with the total data
+            document.getElementById('small-bottle-count').innerText = data.total_small || '0';
+            document.getElementById('medium-bottle-count').innerText = data.total_medium || '0';
+            document.getElementById('large-bottle-count').innerText = data.total_large || '0';
+            document.getElementById('total-counts').innerText = data.total_bottles || '0';
         })
-        .catch(error => console.error('Error fetching bottle counts:', error));
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            // Handle error, possibly display a message to the user
+        });
 }
 
-// Call fetchBottleCounts initially
-fetchBottleCounts();
-
-// Set interval to update every 5 seconds (5000 ms)
-setInterval(fetchBottleCounts, 5000);
     </script>
 </body>
 </html>

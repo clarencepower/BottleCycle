@@ -419,102 +419,141 @@ require '../auth.php';
         </aside>
 
         <!-- Main Content -->
-        <main class="content">
-            <section class="widget time-widget">
-                <section class="widget report-widget">
-                    <h4>Daily Bottle Collection Report</h4>
-                    <div class="search-container">
-    <label for="date-search">Search by Date:</label>
-    <input type="date" id="date-search">
-    <button onclick="searchByDate()">Search</button>
+<main class="content">
+    <section class="widget time-widget">
+        <section class="widget report-widget">
+            <h4>Daily Bottle Collection Report</h4>
+            <div class="search-container">
+                <label for="date-search">Search by Date:</label>
+                <input type="date" id="date-search">
+                <button onclick="searchByDate()">Search</button>
 
-    <!-- Bin Selection Dropdown -->
-    <label for="bin-dropdown">Select Bin:</label>
-    <select id="bin-dropdown" onchange="fetchDataByBin()">
-        <option value="">Select Bin</option>
-        <!-- The bin options will be populated dynamically -->
-    </select>
+                <!-- Bin Selection Dropdown -->
+                <label for="bin-dropdown">Select Bin:</label>
+                <select id="bin-dropdown" onchange="fetchDataByBin()">
+                    <option value="">Select Bin</option>
+                    <!-- The bin options will be populated dynamically -->
+                </select>
 
+                <!-- Generate Report Button -->
+                <button onclick="generatePDFReport()">Generate PDF Report</button>
+                <button id="display-all-bins" onclick="displayAllBins()">Display All Bins</button>
+                <button onclick="generatePDF()">Generate PDF Report All Bins</button>
+            </div>
 
-    <!-- Generate Report Button -->
-    <button onclick="generatePDFReport()">Generate PDF Report</button>
-</div>
+            <div id="report-table-container">
+                <table id="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th id="bin-code-header">Bin Code</th>
+                            <th>Total Small Bottles</th>
+                            <th>Total Medium Bottles</th>
+                            <th>Total Large Bottles</th>
+                            <th>Total Bottles</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-table-body">
+                        <!-- Rows will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
 
+            <div>
+                <canvas id="report-chart" width="400" height="200"></canvas>
+            </div>
+        </section>
+    </section>
+</main>
 
-                    <div id="report-table-container">
-                        <table id="report-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Total Small Bottles</th>
-                                    <th>Total Medium Bottles</th>
-                                    <th>Total Large Bottles</th>
-                                    <th>Total Bottles</th>
-                                </tr>
-                            </thead>
-                            <tbody id="report-table-body">
-                                <!-- Rows will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
+<script>
+// Fetch bin IDs for dropdown selection
+function fetchBinIds() {
+    fetch('../Sensors/get_bin_ids.php')
+        .then(response => response.json())
+        .then(data => {
+            const binDropdown = document.getElementById('bin-dropdown');
+            data.forEach(bin => {
+                const option = document.createElement('option');
+                option.value = bin.bin_code;
+                option.textContent = bin.bin_code;
+                binDropdown.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Error fetching bin IDs:', error));
+}
 
-                    <div>
-                        <canvas id="report-chart" width="400" height="200"></canvas>
-                    </div>
-                </section>
-            </section>
-        </main>
-    </div>
-
-    <script>
- // Fetch bin IDs for dropdown selection
-        function fetchBinIds() {
-            fetch('../Sensors/get_bin_ids.php')
-                .then(response => response.json())
-                .then(data => {
-                    const binDropdown = document.getElementById('bin-dropdown');
-                    data.forEach(bin => {
-                        const option = document.createElement('option');
-                        option.value = bin.bin_code;
-                        option.textContent = bin.bin_code;
-                        binDropdown.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error fetching bin IDs:', error));
-        }
-
-        // Fetch data for the selected bin and populate the table
-        function fetchDataByBin() {
-            const binId = document.getElementById('bin-dropdown').value;
-            const date = document.getElementById('date-search').value;
-
-            if (binId) {
-                const url = `../Sensors/get_daily_reports.php?bin_code=${binId}&date=${date}`;
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        const reportTableBody = document.getElementById('report-table-body');
-                        reportTableBody.innerHTML = '';  // Clear previous table rows
-                        
-                        data.forEach(row => {
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>${row.date}</td>
-                                <td>${row.total_small}</td>
-                                <td>${row.total_medium}</td>
-                                <td>${row.total_large}</td>
-                                <td>${row.total_bottles}</td>
-                            `;
-                            reportTableBody.appendChild(tr);
-                        });
-                    })
-                    .catch(error => console.error('Error fetching bin data:', error));
-            }
-        }
-
-        function generatePDFReport() {
+// Fetch data for the selected bin and populate the table
+function fetchDataByBin() {
     const binId = document.getElementById('bin-dropdown').value;
     const date = document.getElementById('date-search').value;
+
+    if (binId) {
+        const url = `../Sensors/get_daily_reports.php?bin_code=${binId}&date=${date}`;
+        fetch(url)
+            .then(response => response.json())
+            .then(data => populateTable(data))
+            .catch(error => console.error('Error fetching data for selected bin:', error));
+    }
+}
+
+// Display all bins when the "Display All Bins" button is clicked
+function displayAllBins() {
+    const date = document.getElementById('date-search').value;
+
+    const url = `../Sensors/fetch_bin_summary.php?date=${date}`; // Fetch all bins if no bin code is selected
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            // Show the "Bin Code" column when displaying all bins
+            document.getElementById('bin-code-header').style.display = 'table-cell';
+            populateTable(data);
+        })
+        .catch(error => console.error('Error fetching all bins data:', error));
+}
+
+// Function to populate the table with fetched data
+function populateTable(data) {
+    const tableBody = document.getElementById('report-table-body');
+    tableBody.innerHTML = ''; // Clear the table body
+
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+       
+        // Create table cells dynamically for each row
+        const dateCell = document.createElement('td');
+        dateCell.textContent = row.formatted_timestamp;
+        tr.appendChild(dateCell);
+
+        const binCodeCell = document.createElement('td');
+        binCodeCell.textContent = row.bin_code;
+        tr.appendChild(binCodeCell);
+
+        const totalSmallCell = document.createElement('td');
+        totalSmallCell.textContent = row.total_small;
+        tr.appendChild(totalSmallCell);
+
+        const totalMediumCell = document.createElement('td');
+        totalMediumCell.textContent = row.total_medium;
+        tr.appendChild(totalMediumCell);
+
+        const totalLargeCell = document.createElement('td');
+        totalLargeCell.textContent = row.total_large;
+        tr.appendChild(totalLargeCell);
+
+        const totalBottlesCell = document.createElement('td');
+        totalBottlesCell.textContent = row.total_bottles;
+        tr.appendChild(totalBottlesCell);
+
+        tableBody.appendChild(tr);
+    });
+}
+
+// Generate PDF Report
+function generatePDFReport() {
+    const binId = document.getElementById('bin-dropdown').value;
+    const date = document.getElementById('date-search').value;
+    
 
     if (binId) {
         const url = `../Users/generate_report.php?bin_code=${binId}&date=${date}`;
@@ -524,8 +563,43 @@ require '../auth.php';
     }
 }
 
-        // Initialize by fetching bin IDs
-        fetchBinIds();
-    </script>
+// Initialize by fetching bin IDs
+fetchBinIds();
+</script>
 
+<script>
+        function generatePDF() {
+            fetch('../Sensors/fetch_bin_summary.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('Error fetching data');
+                    } else {
+                        // Pass the fetched data to the PHP script for PDF generation
+                        let formData = new FormData();
+                        formData.append('bins_data', JSON.stringify(data));
+                        
+                        fetch('../Users/generate_pdf.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(response => response.blob())
+                        .then(blob => {
+                            // Create a link to download the PDF
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = 'bin_summary_report.pdf';
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
 </body>

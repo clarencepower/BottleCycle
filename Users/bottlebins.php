@@ -803,7 +803,7 @@ element.style {
            
         </div>
         <button id="addBinBtn" class="add-bin-btn">+ Add Bottle Bin</button>
-                        <i class="fas fa-trash"></i>
+                   
                     </button>
     </div>
 
