@@ -452,6 +452,59 @@ require '../auth.php';
     border-left: 5px solid green;
 }
   
+ button {
+    padding: 8px 12px;
+    background-color: #005709;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+/* Container for the dropdown and button */
+.align-container {
+    display: flex;
+    align-items: center;  /* Align items vertically in the center */
+    justify-content: flex-start;  /* Align items to the left */
+    gap: 10px;  /* Optional: Adds space between the dropdown and button */
+}
+
+/* Styling for the dropdown */
+#bin-dropdown {
+    width: 150px;  /* Adjust width as needed */
+    background-color: #005709;
+    color: white;
+    padding: 10px;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    appearance: none;
+    /* Remove arrow for consistent look (optional) */
+}
+
+/* Styling for the button */
+#action-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+}
+
+#action-button:hover {
+    background-color: #0056b3;
+}
+
+@media (max-width: 600px) {
+    #bin-dropdown {
+        width: 100%; /* Take full width on smaller screens */
+    }
+}
     </style>
 </head>
 <body>
@@ -773,11 +826,18 @@ function fetchBinIds() {
     fetchBinIds();
 
     // Function to fetch total bottles collected for all bins
-function fetchAllBinsData() {
+    function fetchAllBinsData() {
     // Make an AJAX call to the server to fetch the total bottle data
     fetch('../Sensors/fetch_all_bins.php') // Replace with your actual API endpoint
         .then(response => response.json())
         .then(data => {
+            // Check if data contains error
+            if (data.error) {
+                console.error('Error fetching data:', data.error);
+                // Handle error, possibly display a message to the user
+                return;
+            }
+            
             // Update the UI with the total data
             document.getElementById('small-bottle-count').innerText = data.total_small || '0';
             document.getElementById('medium-bottle-count').innerText = data.total_medium || '0';

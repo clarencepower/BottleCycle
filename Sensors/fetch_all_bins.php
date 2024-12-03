@@ -15,25 +15,22 @@ if ($mysqli->connect_error) {
     die('Connection failed: ' . $mysqli->connect_error);
 }
 
-// SQL query to get the total of all bins and include bin_code
-$sql = "SELECT DATE(timestamp) AS date,
-            bin_code,
+// SQL query to get the total of all bins (no need to group by bin_code for global totals)
+$sql = "SELECT 
             SUM(total_small) AS total_small,
             SUM(total_medium) AS total_medium,
             SUM(total_large) AS total_large,
             SUM(total_bottles) AS total_bottles
-        FROM bin_summary  -- Table name is bin_summary
-        GROUP BY bin_code";  // Group by bin_code to get individual totals per bin
+        FROM bin_summary";  // Sum up all values
 
 $result = $mysqli->query($sql);
 
 // Check if the query was successful
 if ($result) {
-    $data = [];
-    while ($row = $result->fetch_assoc()) {
-        $data[] = $row;  // Store each row of the result in the data array
-    }
-    echo json_encode($data); // Return the result as a JSON response
+    // Fetch the total data
+    $row = $result->fetch_assoc();
+    // Return the summed totals as a JSON response
+    echo json_encode($row);
 } else {
     echo json_encode(['error' => 'Failed to fetch data']);
 }

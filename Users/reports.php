@@ -396,6 +396,19 @@ require '../auth.php';
     border-radius: 5px;
     cursor: pointer;
     }
+    #bin-dropdown {
+    width: 150px;  /* Adjust width as needed */
+    background-color: #005709;
+    color: white;
+    padding: 10px;
+    font-size: 13px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    appearance: none;
+    /* Remove arrow for consistent look (optional) */
+}
  </style>
 </head>
 <body class="bod">
@@ -426,7 +439,8 @@ require '../auth.php';
             <div class="search-container">
                 <label for="date-search">Search by Date:</label>
                 <input type="date" id="date-search">
-                <button onclick="searchByDate()">Search</button>
+
+       <!-- <button onclick="searchByDate()">Search</button> -->
 
                 <!-- Bin Selection Dropdown -->
                 <label for="bin-dropdown">Select Bin:</label>
