@@ -6,7 +6,6 @@ $password = "";      // Default password for XAMPP
 $dbname = "bottlecycle-ctu";  // Replace with your database name
 
 // Create connection
-// Database connection (update with your DB credentials)
 $mysqli = new mysqli($servername, $username, $password, $dbname);
 
 // Check the connection
@@ -23,21 +22,34 @@ $result = $mysqli->query($sql);
 if ($result) {
     $status_data = [];
     $full_or_picked_up_bins = [];
-    
-    // Loop through the results and add both "Full" and "Picked Up" bins to the array
+
+    // Loop through the results and add status based on 'is_full' value
     while ($row = $result->fetch_assoc()) {
-        $status_data[] = $row;
-        $full_or_picked_up_bins[] = $row;  // Include both full and picked up bins
+        $status = "";
+        
+        // Determine the status based on 'is_full'
+        if ($row['is_full'] == 1) {
+            $status = "Full";
+        } elseif ($row['is_full'] == 2) {
+            $status = "Medium Level";
+        } elseif ($row['is_full'] == 0) {
+            $status = "Picked Up";
+        }
+
+        // Add the record with status information to the response
+        $full_or_picked_up_bins[] = [
+            'bin_id' => $row['bin_id'],
+            'status' => $status,
+            'timestamp' => $row['timestamp']
+        ];
     }
 
+    // Return a JSON response with the status data
     echo json_encode([
-        'status_data' => $status_data,
-        'full_or_picked_up_bins' => $full_or_picked_up_bins  // Send both statuses
+        'full_or_picked_up_bins' => $full_or_picked_up_bins
     ]);
 } else {
+    // If the query fails, return an error message
     echo json_encode(['error' => 'Failed to fetch data']);
 }
-
-// Close the database connection
-$mysqli->close();
 ?>

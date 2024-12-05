@@ -474,7 +474,7 @@ require '../auth.php';
     background-color: #005709;
     color: white;
     padding: 10px;
-    font-size: 13px;
+    font-size: 12.5px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -504,6 +504,10 @@ require '../auth.php';
     #bin-dropdown {
         width: 100%; /* Take full width on smaller screens */
     }
+}
+.notification-container {
+    max-height: 400px;
+    overflow-y: auto;
 }
     </style>
 </head>
@@ -584,7 +588,7 @@ require '../auth.php';
              <!-- Notifications Widget -->
 <section class="widget notification-widget">
     <h4>Notifications</h4>
-    <div id="notification-container">
+    <div class="notification-container" style="max-height: 350px; overflow-y: auto;">
         <div id="notification-content">
             <!-- "Full" status records will be dynamically populated here -->
         </div>
@@ -614,80 +618,78 @@ document.addEventListener("DOMContentLoaded", function() {
     let previousLatestTimestamp = null; // Store the timestamp of the latest notification
     const notificationSound = document.getElementById("notification-sound");
 
+    // Play the notification sound when there's a new notification
+    function playNotificationSound() {
+        if (notificationSound) {
+            notificationSound.play();
+        } else {
+            console.warn("Notification sound element not found.");
+        }
+    }
+
+    // Fetch bin status from the PHP script
     function fetchBinStatus() {
         fetch('../Sensors/fetch_bin_status.php')  // Path to your PHP script
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    console.error("Error fetching bin status:", response.statusText);
+                    return;
+                }
+                return response.json();
+            })
             .then(data => {
                 const notificationContent = document.getElementById("notification-content");
                 notificationContent.innerHTML = ""; // Clear existing content
 
-                // Get the first 5 "Full" or "Picked Up" bin notifications
-                const fullOrPickedUpNotifications = data.full_or_picked_up_bins.slice(0, 5);
+                if (data && data.full_or_picked_up_bins) {
+                    // Get the first 5 notifications based on status (Full, Medium Level, Picked Up)
+                    const relevantNotifications = data.full_or_picked_up_bins.slice(0, 5);
 
-                // Check if there's a new notification with a different timestamp
-                if (fullOrPickedUpNotifications.length > 0) {
-                    const latestTimestamp = fullOrPickedUpNotifications[0].timestamp;
+                    // Check if there's a new notification with a different timestamp
+                    if (relevantNotifications.length > 0) {
+                        const latestTimestamp = relevantNotifications[0].timestamp;
 
-                    if (previousLatestTimestamp !== latestTimestamp) {
-                        // Play notification sound for the new timestamp
-                        playNotificationSound();
+                        if (previousLatestTimestamp !== latestTimestamp) {
+                            // Play notification sound for the new timestamp
+                            playNotificationSound();
 
-                        // Update the previous timestamp
-                        previousLatestTimestamp = latestTimestamp;
+                            // Update the previous timestamp
+                            previousLatestTimestamp = latestTimestamp;
+                        }
                     }
+
+                    // Display the recent notifications
+                    relevantNotifications.forEach(record => {
+                        const notificationItem = document.createElement("div");
+                        notificationItem.classList.add("notification-item");
+
+                        const title = document.createElement("p");
+                        title.classList.add("notification-title");
+
+                        // Display status based on 'is_full'
+                        title.textContent = `Bottle Bin ${record.bin_id} - ${record.status}`;
+
+                        const timestamp = document.createElement("p");
+                        timestamp.textContent = `Timestamp: ${record.timestamp}`;
+
+                        // Append both title and timestamp
+                        notificationItem.appendChild(title);
+                        notificationItem.appendChild(timestamp);
+
+                        // Add notification item to the content
+                        notificationContent.appendChild(notificationItem);
+                    });
                 }
-
-                // Display the recent "Full" or "Picked Up" notifications
-                fullOrPickedUpNotifications.forEach(record => {
-                    const notificationItem = document.createElement("div");
-                    notificationItem.classList.add("notification-item");
-
-                    const title = document.createElement("p");
-                    title.classList.add("notification-title");
-
-                    // Handle Full vs. Picked Up status
-                    if (record.is_full === 1) {
-                        title.textContent = `Bottle Bin ${record.bin_id} is Full`; // Dynamic bin_id for Full
-                    } else {
-                        title.textContent = `Bottle Bin ${record.bin_id} was Picked Up`; // Dynamic bin_id for Picked Up
-                    }
-
-                    const message = document.createElement("p");
-                    message.textContent = record.is_full === 1
-                        ? "Please empty to avoid overflow."  // Message for Full bin
-                        : "Bin has been emptied.";           // Message for Picked Up bin
-
-                    const timestamp = document.createElement("p");
-                    timestamp.classList.add("notification-timestamp");
-                    timestamp.textContent = `Timestamp: ${record.timestamp}`;
-
-                    notificationItem.appendChild(title);
-                    notificationItem.appendChild(message);
-                    notificationItem.appendChild(timestamp);
-
-                    notificationContent.appendChild(notificationItem);
-                });
-
-                // Update the notification badge count
-                const notificationBadge = document.getElementById("notification-badge");
-                notificationBadge.textContent = fullOrPickedUpNotifications.length;
-                notificationBadge.style.display = fullOrPickedUpNotifications.length > 0 ? "inline-block" : "none";
             })
-            .catch(error => console.error("Error fetching bin status:", error));
+            .catch(error => console.error("Error fetching or processing bin status:", error));
     }
 
-    function playNotificationSound() {
-        notificationSound.currentTime = 0;
-        notificationSound.play().catch((error) => {
-            console.error("Error playing notification sound:", error);
-        });
-    }
+    // Fetch bin status every 10 seconds (you can adjust this interval)
+    setInterval(fetchBinStatus, 10000);
 
-    // Initial fetch and set interval
+    // Initial fetch on page load
     fetchBinStatus();
-    setInterval(fetchBinStatus, 10000); // Fetch every 10 seconds
 });
-
 
 
     </script>

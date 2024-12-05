@@ -11,8 +11,13 @@ header('Content-Type: application/json');
 // Database connection (update with your DB credentials)
 $mysqli = new mysqli($servername, $username , $password, $dbname);
 
-// SQL query to get the 15 latest bin status records based on 'id'
-$sql = "SELECT bin_id, is_full, timestamp FROM bin_status ORDER BY id DESC LIMIT 1";
+// Check the connection
+if ($mysqli->connect_error) {
+    die("Connection failed: " . $mysqli->connect_error);
+}
+
+// SQL query to get all bin status records (without limiting)
+$sql = "SELECT bin_id, is_full, timestamp FROM bin_status ORDER BY id DESC";
 
 $result = $mysqli->query($sql);
 
@@ -20,7 +25,18 @@ $result = $mysqli->query($sql);
 if ($result) {
     $status_data = [];
     while ($row = $result->fetch_assoc()) {
-        $status = ($row['is_full'] == 1) ? 'This Bin is Full' : 'Bin was Collected';
+        // Determine the bin status based on 'is_full' value
+        if ($row['is_full'] == 0) {
+            $status = 'Bin was Collected';
+        } elseif ($row['is_full'] == 1) {
+            $status = 'Bin is Full';
+        } elseif ($row['is_full'] == 2) {
+            $status = 'Bin is in Medium Level';
+        } else {
+            $status = 'Unknown Status'; // In case 'is_full' has unexpected value
+        }
+        
+        // Append each record to the status_data array
         $status_data[] = [
             'bin_id' => $row['bin_id'],
             'status' => $status,
@@ -34,4 +50,5 @@ if ($result) {
 
 // Close the database connection
 $mysqli->close();
+
 ?>

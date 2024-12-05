@@ -5,7 +5,7 @@
     <link rel="shortcut icon" type="x-icon" href="drawable/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="../css/dashboard.css">
+   
     
     <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -270,10 +270,14 @@
             60% { transform: translateY(-5px); }
         }
          /* Styling for the notification bell and badge */
-         .notification-container {
-            position: relative;
-            display: inline-block;
-        }
+       .notification-container {
+    max-height: 400px;
+    overflow-y: 400px;
+}
+.scroll{
+    max-height: 400px;
+    overflow-y: auto;
+}
 
         .bell-icon {
             font-size: 32px;
@@ -319,8 +323,10 @@
         .container {
             width: 80%;
             margin: auto;
-            margin-top: 50px;
+            mar
+            gin-top: 50px;
         }
+  
  </style>
 </head>
 <body class="bod">
@@ -344,7 +350,7 @@
         </aside>
         <main class="content">
     <section class="widget time-widget">
-        <div class="notification-container">
+    <div class="notification-container" style="max-height: 400px; overflow-y: auto;">
             <i class="bell-icon">&#128276;</i> <!-- Bell icon (Unicode bell) -->
             <span class="badge" id="notification-badge"></span>
             <h2>Bin Status Notification History</h2>
@@ -384,8 +390,8 @@
                         sidebar.classList.add('collapsed');
                     });
             </script>
- <<script>
-// Function to fetch and display the 15 latest bin status records
+ <script>
+// Function to fetch and display the bin status records
 function fetchBinStatus() {
     // Make an AJAX call to fetch the data from the PHP script
     fetch('../Sensors/get_bin_status.php')  // Path to the PHP file
@@ -399,22 +405,32 @@ function fetchBinStatus() {
             const tableBody = document.getElementById('history-body');
             tableBody.innerHTML = ''; // Clear any existing data
 
+            // Loop through each bin status and create a row in the table
             data.forEach(status => {
-                // Create a new row for each record
                 const row = document.createElement('tr');
 
-                // Create and populate the cells for each column
+                // Create and populate cells for Bin Code, Status, and Timestamp
                 const binCodeCell = document.createElement('td');
-                binCodeCell.textContent = status.bin_id; // Bottle Bin Code
-                row.appendChild(binCodeCell);
+                binCodeCell.textContent = status.bin_id; // Assuming 'bin_id' contains the bin code
 
                 const statusCell = document.createElement('td');
-                statusCell.textContent = status.is_full == 1 ? 'Bottle Bin is Full' : 'Bottle Bin was Picked Up';
-                statusCell.style.backgroundColor = status.is_full == 1 ? 'red' : 'green'; // Set background color based on status
-                row.appendChild(statusCell);
+                statusCell.textContent = status.status;
 
                 const timestampCell = document.createElement('td');
-                timestampCell.textContent = status.timestamp; // Timestamp
+                timestampCell.textContent = status.timestamp;
+
+                // Apply color to statusCell based on the status
+                if (status.status === 'This Bin is Full') {
+                    statusCell.style.backgroundColor = 'red';  // Color Full bins as red
+                    statusCell.style.color = 'white';  // Optional: make text white for readability
+                } else if (status.status === 'Bin was Collected') {
+                    statusCell.style.backgroundColor = 'green';  // Color Collected bins as green
+                    statusCell.style.color = 'white';  // Optional: make text white for readability
+                }
+
+                // Append cells to the row
+                row.appendChild(binCodeCell);
+                row.appendChild(statusCell);
                 row.appendChild(timestampCell);
 
                 // Append the row to the table body
@@ -422,20 +438,16 @@ function fetchBinStatus() {
             });
         })
         .catch(error => {
-            console.error('Error fetching data:', error);
+            console.error('Error fetching bin status:', error);
         });
 }
 
-// Fetch and display bin status when the page is loaded
-window.onload = function() {
-    fetchBinStatus();
-};
-
-
+// Call the function when the page loads to fetch and display the status
+fetchBinStatus();
 
 </script>
 
-</script>
+
 
 
 
