@@ -596,7 +596,7 @@ require '../auth.php';
     <!-- Notification Icon with Badge -->
     <div class="notification-icon">
         <i class="fas fa-bell"></i>
-        <span id="notification-badge" class="badge">0</span>
+        <span id="notification-badge" class="badge"> • </span>
     </div>
 </section>
 
@@ -783,7 +783,7 @@ document.addEventListener("DOMContentLoaded", function() {
         // Function to fetch bottle counts and update the widget
 // Fetch bin IDs for dropdown selection
 function fetchBinIds() {
-        fetch('../Sensors/get_bin_ids.php')
+        fetch('../Sensors/get_bin_ids_dashboard.php')
             .then(response => response.json())
             .then(data => {
                 const binDropdown = document.getElementById('bin-dropdown');

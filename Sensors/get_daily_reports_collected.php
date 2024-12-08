@@ -23,7 +23,7 @@ $query = "
            SUM(total_medium) AS total_medium,
            SUM(total_large) AS total_large,
            SUM(total_bottles) AS total_bottles
-    FROM bin_summary
+    FROM bottles_collected
     WHERE bin_code = ?";
 
 if ($date) {

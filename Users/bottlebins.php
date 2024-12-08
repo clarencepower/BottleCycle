@@ -915,18 +915,38 @@ function loadBinList() {
                         .addTo(map);
 
                     // Fetch and display the latest status in a popup
+                    // Function to load the list of bins and set up click events
+                    // Fetch the bin status data
                     fetch(`../Sensors/get_bin_status.php?binCode=${bin.bin_code}`)
                         .then(response => response.json())
                         .then(data => {
-                            const status = data.length ? data[0].status : 'No status data available';
-                            const timestamp = data.length ? data[0].timestamp : 'N/A';
+                           
+                            console.log('Fetched bin data:', data); // Debugging
+                            // Check if the bin_id matches the bin_code
+                            const matchedBin = data.find(status => status.bin_id === bin.bin_code);
+                            let popupContent;
+                            if (matchedBin) {
+                                // If a match is found, display the bin's details
+                                const status = matchedBin.status || 'No status data available';
+                                const timestamp = matchedBin.timestamp || 'N/A';
 
-                            const popupContent = `<strong>Bin Code:</strong> ${bin.bin_code}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
-                            currentPopup = new mapboxgl.Popup({ offset: 25 })
-                                .setLngLat([lng, lat])
-                                .setHTML(popupContent)
-                                .addTo(map);
-                        })
+                                popupContent = `
+                    <strong>Bin Code:</strong> ${bin.bin_code}<br>
+                    <strong>Status:</strong> ${status}<br>
+                    <strong>Last Updated:</strong> ${timestamp}
+                                `;
+                            } else {
+                                // If no match is found, display a message
+                                popupContent = "Bin is not registered or activated";
+                            }
+
+                        
+            // Attach the popup to the marker with the content
+            new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML(popupContent)
+                .addTo(map);
+        })
                         .catch(error => console.error('Error fetching bin status:', error));
                 });
 
@@ -938,6 +958,7 @@ function loadBinList() {
 
 // Call loadBinList on page load
 document.addEventListener('DOMContentLoaded', loadBinList);
+
 
 
 
@@ -1114,22 +1135,48 @@ function removeBinFromList(binCode) {
         .setLngLat([lng, lat])
         .addTo(map);
 
-    // Add click event for marker to fetch and display the latest bin status
-    marker.getElement().addEventListener('click', () => {
-        fetch(`../Sensors/get_bin_status.php`)
-            .then(response => response.json())
-            .then(data => {
-                const status = data.length ? data[0].status : 'No status data available';
-                const timestamp = data.length ? data[0].timestamp : 'N/A';
+        marker.getElement().addEventListener('click', () => {
+    fetch(`../Sensors/get_bin_status.php`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched bin data:', data); // Debugging
 
-                const popupContent = `<strong>Bin Code:</strong> ${binCode}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
-                new mapboxgl.Popup({ offset: 25 })
-                    .setLngLat([lng, lat])
-                    .setHTML(popupContent)
-                    .addTo(map);
-            })
-            .catch(error => console.error('Error fetching bin status:', error));
-    });
+            // Check if the bin_id matches the bin_code
+            const matchedBin = data.find(bin => bin.bin_id === binCode);
+
+            let popupContent;
+
+            if (matchedBin) {
+                // If a match is found, display the bin's details
+                const status = matchedBin.status || 'No status data available';
+                const timestamp = matchedBin.timestamp || 'N/A';
+
+                popupContent = `
+                    <strong>Bin Code:</strong> ${binCode}<br>
+                    <strong>Status:</strong> ${status}<br>
+                    <strong>Last Updated:</strong> ${timestamp}
+                `;
+            } else {
+                // If no match is found, display a message
+                popupContent = "Bin is not registered or activated";
+            }
+
+            // Attach the popup to the marker with the content
+            new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML(popupContent)
+                .addTo(map);
+        })
+        .catch(error => {
+            console.error('Error fetching bin status:', error);
+
+            // Handle error with a generic message
+            new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML("Error fetching bin status. Please try again.")
+                .addTo(map);
+        });
+});
 }
 
 
@@ -1205,25 +1252,54 @@ function addTrashBinMarker(lng, lat, binCode) {
         .setLngLat([lng, lat])
         .addTo(map);
 
-    // Add click event to fetch and display the latest bin status
-    marker.getElement().addEventListener('click', () => {
-        fetch(`../Sensors/get_bin_status.php`)
-            .then(response => response.json())
-            .then(data => {
-                // Create the popup content from the latest status
-                const status = data.length ? data[0].status : 'No status data available';
-                const timestamp = data.length ? data[0].timestamp : 'N/A';
+    // Fetch the bin status data in advance
+// Fetch the bin status data in advance
+// Add the click event listener to the marker
+marker.getElement().addEventListener('click', () => {
+    // Fetch the bin status data
+    fetch(`../Sensors/get_bin_status.php`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched bin data:', data); // Debugging
 
-                const popupContent = `<strong>Bin Code:</strong> ${binCode}<br><strong>Status:</strong> ${status}<br><strong>Last Updated:</strong> ${timestamp}`;
+            // Check if the bin_id matches the bin_code
+            const matchedBin = data.find(bin => bin.bin_id === binCode);
 
-                // Attach the popup to the marker with the fetched content
-                new mapboxgl.Popup({ offset: 25 })
-                    .setLngLat([lng, lat])
-                    .setHTML(popupContent)
-                    .addTo(map);
-            })
-            .catch(error => console.error('Error fetching bin status:', error));
-    });
+            let popupContent;
+
+            if (matchedBin) {
+                // If a match is found, display the bin's details
+                const status = matchedBin.status || 'No status data available';
+                const timestamp = matchedBin.timestamp || 'N/A';
+
+                popupContent = `
+                    <strong>Bin Code:</strong> ${binCode}<br>
+                    <strong>Status:</strong> ${status}<br>
+                    <strong>Last Updated:</strong> ${timestamp}
+                `;
+            } else {
+                // If no match is found, display a message
+                popupContent = "Bin is not registered or activated";
+            }
+
+            // Attach the popup to the marker with the content
+            new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML(popupContent)
+                .addTo(map);
+        })
+        .catch(error => {
+            console.error('Error fetching bin status:', error);
+
+            // Handle error with a generic message
+            new mapboxgl.Popup({ offset: 25 })
+                .setLngLat([lng, lat])
+                .setHTML("Error fetching bin status. Please try again.")
+                .addTo(map);
+        });
+});
+
+
 }
     // Fetch saved bottle bins and add them to the map on page load
     function loadBins() {

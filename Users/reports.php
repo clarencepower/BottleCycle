@@ -532,7 +532,7 @@ function fetchDataByBin() {
     const date = document.getElementById('date-search').value;
 
     if (binId) {
-        const url = `../Sensors/get_daily_reports.php?bin_code=${binId}&date=${date}`;
+        const url = `../Sensors/get_daily_reports_collected.php?bin_code=${binId}&date=${date}`;
         fetch(url)
             .then(response => response.json())
             .then(data => populateTable(data))
