@@ -33,7 +33,9 @@ if ($result) {
         } elseif ($row['is_full'] == 2) {
             $status = "Medium Level";
         } elseif ($row['is_full'] == 0) {
-            $status = "Picked Up";
+            $status = "Low Level";
+        } elseif ($row['is_full'] == 3) {
+            $status = "is Collected";
         }
 
         // Add the record with status information to the response

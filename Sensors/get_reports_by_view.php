@@ -14,6 +14,7 @@ if ($conn->connect_error) {
 // Get parameters
 $viewBy = isset($_GET['viewBy']) ? $conn->real_escape_string($_GET['viewBy']) : 'day';
 $year = isset($_GET['year']) ? $conn->real_escape_string($_GET['year']) : date('Y');
+$binCode = isset($_GET['binCode']) ? $conn->real_escape_string($_GET['binCode']) : ''; // Get binCode parameter
 
 // Determine date format and grouping level based on viewBy
 $dateFormat = "%Y-%m-%d";
@@ -29,16 +30,24 @@ if ($viewBy === 'month') {
     $groupBy = "YEAR(timestamp)";
 }
 
-// Fetch data from the `bin_ctu0001` table, considering the viewBy grouping
+// Build the main query with binCode filtering
 $query = "
     SELECT 
         DATE_FORMAT(timestamp, '$dateFormat') AS date,
-        SUM(CASE WHEN size_type = 'small' THEN quantity ELSE 0 END) AS small_bottles,
-        SUM(CASE WHEN size_type = 'medium' THEN quantity ELSE 0 END) AS medium_bottles,
-        SUM(CASE WHEN size_type = 'large' THEN quantity ELSE 0 END) AS large_bottles
-    FROM bin_ctu0001
+        SUM(total_small) AS small_bottles,
+        SUM(total_medium) AS medium_bottles,
+        SUM(total_large) AS large_bottles,
+        SUM(total_bottles) AS total_bottles
+    FROM bottles_collected
     WHERE YEAR(timestamp) = '$year'
-    GROUP BY $groupBy
+";
+
+if (!empty($binCode)) {
+    $query .= " AND bin_code = '$binCode'";
+}
+
+$query .= "
+    GROUP BY $groupBy   
     ORDER BY $groupBy ASC";
 
 // Execute query
@@ -52,7 +61,7 @@ if ($result && $result->num_rows > 0) {
             'small_bottles' => (int)$row['small_bottles'],
             'medium_bottles' => (int)$row['medium_bottles'],
             'large_bottles' => (int)$row['large_bottles'],
-            'total_bottles' => (int)$row['small_bottles'] + (int)$row['medium_bottles'] + (int)$row['large_bottles']
+            'total_bottles' => (int)$row['total_bottles']
         ];
     }
 }

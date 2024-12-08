@@ -439,7 +439,36 @@ require '../auth.php';
             <div class="search-container">
                 <label for="date-search">Search by Date:</label>
                 <input type="date" id="date-search">
+ <!-- View By Button -->
+ <button id="viewByBtn" onclick="openModal()">View By</button>
 
+<!-- Modal Structure -->
+<div id="viewByModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h4>Select View Type</h4>
+        <label for="viewByDropdown">View By:</label>
+        <select class="drop" id="viewByDropdown" onchange="fetchDataByView()">
+            <option value="day">Day</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+        </select>
+
+        <label for="yearDropdown">Year:</label>
+        <select class="drop" id="yearDropdown" onchange="fetchDataByYear()">
+            <!-- Populate this dynamically with available years -->
+        </select>
+
+        <label for="binCodeDropdown">Bin Code:</label>
+        <select class="drop" id="binCodeDropdown" onchange="fetchDataByView()">
+            <!-- Bin codes will be dynamically populated -->
+        </select>
+
+        <div id="viewByResults">
+            <!-- Results will be displayed here -->
+        </div>
+    </div>
+</div>
        <!-- <button onclick="searchByDate()">Search</button> -->
 
                 <!-- Bin Selection Dropdown -->
@@ -450,9 +479,9 @@ require '../auth.php';
                 </select>
 
                 <!-- Generate Report Button -->
-                <button onclick="generatePDFReport()">Generate PDF Report</button>
+                <button onclick="generatePDFReport()">Generate Report</button>
                 <button id="display-all-bins" onclick="displayAllBins()">Display All Bins</button>
-                <button onclick="generatePDF()">Generate PDF Report All Bins</button>
+                <button onclick="generatePDF()">Generate Report All Bins</button>
             </div>
 
             <div id="report-table-container">
@@ -515,7 +544,7 @@ function fetchDataByBin() {
 function displayAllBins() {
     const date = document.getElementById('date-search').value;
 
-    const url = `../Sensors/fetch_bin_summary.php?date=${date}`; // Fetch all bins if no bin code is selected
+    const url = `../Sensors/fetch_bottles_collected.php?date=${date}`; // Fetch all bins if no bin code is selected
     fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -583,7 +612,7 @@ fetchBinIds();
 
 <script>
         function generatePDF() {
-            fetch('../Sensors/fetch_bin_summary.php')
+            fetch('../Sensors/fetch_bottles_collected.php')
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
@@ -614,6 +643,117 @@ fetchBinIds();
                 .catch(error => {
                     console.error('Error:', error);
                 });
+        }
+    </script>
+  <script>
+        // Open the Modal
+        function openModal() {
+            document.getElementById("viewByModal").style.display = "block";
+            populateYearDropdown(); // Populate the year dropdown
+            populateBinCodeDropdown(); // Populate the bin code dropdown
+        }
+
+        // Close the Modal
+        function closeModal() {
+            document.getElementById("viewByModal").style.display = "none";
+        }
+
+        // Populate Year Dropdown
+        function populateYearDropdown() {
+            const yearDropdown = document.getElementById("yearDropdown");
+            const currentYear = new Date().getFullYear();
+            yearDropdown.innerHTML = "";
+
+            for (let year = currentYear; year >= currentYear - 10; year--) {
+                const option = document.createElement("option");
+                option.value = year;
+                option.textContent = year;
+                yearDropdown.appendChild(option);
+            }
+        }
+
+        // Populate Bin Code Dropdown
+        async function populateBinCodeDropdown() {
+            const binCodeDropdown = document.getElementById("binCodeDropdown");
+            binCodeDropdown.innerHTML = "<option value=''>Select Bin Code</option>"; // Add default option
+
+            try {
+                const response = await fetch('../Sensors/get_bin_ids.php'); // Adjust path if necessary
+                const bins = await response.json();
+
+                if (bins.error) {
+                    console.error("Error:", bins.error);
+                    return;
+                }
+
+                bins.forEach(bin => {
+                    const option = document.createElement("option");
+                    option.value = bin.bin_code;
+                    option.textContent = bin.bin_code;
+                    binCodeDropdown.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching bin codes:", error);
+            }
+        }
+
+        // Fetch Data Based on Filters
+        function fetchDataByView() {
+            const viewBy = document.getElementById("viewByDropdown").value;
+            const year = document.getElementById("yearDropdown").value;
+            const binCode = document.getElementById("binCodeDropdown").value;
+
+            console.log(`Fetching data for viewBy: ${viewBy}, year: ${year}, binCode: ${binCode}`);
+
+            fetch(`../Sensors/get_reports_by_view.php?viewBy=${viewBy}&year=${year}&binCode=${binCode}`)
+                .then(response => {
+                    console.log("Raw response:", response);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Parsed data:", data);
+                    displayResults(data, viewBy);
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function displayResults(data, viewBy) {
+            console.log("Data to display:", data);
+            const resultsContainer = document.getElementById("viewByResults");
+            resultsContainer.innerHTML = ""; // Clear previous results
+
+            if (data.length === 0) {
+                resultsContainer.innerHTML = "<p>No data available for the selected period.</p>";
+                return;
+            }
+
+            const table = document.createElement("table");
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>${viewBy === "day" ? "Date" : viewBy === "month" ? "Month" : viewBy === "week" ? "Week" : "Year"}</th>
+                        <th>Small Bottles</th>
+                        <th>Medium Bottles</th>
+                        <th>Large Bottles</th>
+                        <th>Total Bottles</th>
+                    </tr>
+                </thead>
+            `;
+
+            const tbody = document.createElement("tbody");
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td>${row.small_bottles}</td>
+                    <td>${row.medium_bottles}</td>
+                    <td>${row.large_bottles}</td>
+                    <td>${row.total_bottles}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            resultsContainer.appendChild(table);
         }
     </script>
 </body>

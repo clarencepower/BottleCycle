@@ -27,11 +27,13 @@ if ($result) {
     while ($row = $result->fetch_assoc()) {
         // Determine the bin status based on 'is_full' value
         if ($row['is_full'] == 0) {
-            $status = 'Bin was Collected';
+            $status = 'Bin is in Low Level';
         } elseif ($row['is_full'] == 1) {
             $status = 'Bin is Full';
         } elseif ($row['is_full'] == 2) {
             $status = 'Bin is in Medium Level';
+        } elseif ($row['is_full'] == 3) {
+            $status = 'Bottle was Collected';
         } else {
             $status = 'Unknown Status'; // In case 'is_full' has unexpected value
         }

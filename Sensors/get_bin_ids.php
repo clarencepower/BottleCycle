@@ -11,7 +11,7 @@ if ($conn->connect_error) {
 }
 
 // Query to get distinct bin_codes from the bin_summary table
-$sql = "SELECT DISTINCT bin_code FROM bin_summary";
+$sql = "SELECT DISTINCT bin_code FROM bottles_collected";
 $result = $conn->query($sql);
 
 $bins = [];

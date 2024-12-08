@@ -851,7 +851,36 @@ function fetchBinIds() {
             // Handle error, possibly display a message to the user
         });
 }
+function resetBinCounts(binId) {
+    if (binId) {
+        fetch('../Sensors/reset_bin_counts.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ bin_id: binId }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    console.log(data.message);
+                    // Optionally refresh data after reset
+                    fetchDataByBin();
+                } else {
+                    console.error(data.message);
+                }
+            })
+            .catch(error => console.error('Error resetting counts:', error));
+    } else {
+        console.error('No bin ID provided for reset.');
+    }
+}
 
+// Call resetBinCounts when needed (e.g., after selecting a bin)
+document.getElementById('reset-button').addEventListener('click', () => {
+    const binId = document.getElementById('bin-dropdown').value;
+    resetBinCounts(binId);
+});
     </script>
 </body>
 </html>

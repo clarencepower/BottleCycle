@@ -24,7 +24,7 @@ $query = "
            total_medium,
            total_large,
            total_bottles
-    FROM bin_summary
+    FROM bottles_collected
     WHERE bin_code = '$bin_code'
 ";
 

@@ -16,7 +16,7 @@ if ($mysqli->connect_error) {
 }
 
 // SQL query to get all bin summary data
-$sql = "SELECT bin_code, total_small, total_medium, total_large, total_bottles, timestamp FROM bin_summary ORDER BY timestamp DESC";
+$sql = "SELECT bin_code, total_small, total_medium, total_large, total_bottles, timestamp FROM bottles_collected ORDER BY timestamp DESC";
 
 $result = $mysqli->query($sql);
 
