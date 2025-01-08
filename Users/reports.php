@@ -756,4 +756,20 @@ fetchBinIds();
             resultsContainer.appendChild(table);
         }
     </script>
+    <script> function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+
+        // Expand sidebar on hover
+        const sidebar = document.querySelector('.sidebar');
+        sidebar.addEventListener('mouseenter', () => {
+            sidebar.classList.remove('collapsed');
+        });
+
+        // Collapse sidebar when the mouse leaves
+        sidebar.addEventListener('mouseleave', () => {
+            sidebar.classList.add('collapsed');
+        });
+        </script>
 </body>

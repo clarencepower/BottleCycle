@@ -23,23 +23,7 @@ $stmt = $conn->prepare("INSERT INTO bottle_bins (bin_code, address, latitude, lo
 $stmt->bind_param("ssdd", $binCode, $address, $latitude, $longitude);
 
 if ($stmt->execute()) {
-    // If insert was successful, create the table
-    $tableName = ($binCode); // Table name based on bin code
-
-    // SQL to create a new table
-    $sql = "CREATE TABLE IF NOT EXISTS $tableName (
-        id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        small_bottle_counts INT(11) DEFAULT NULL,
-        medium_bottle_counts INT(11) DEFAULT NULL,
-        large_bottle_counts INT(11) DEFAULT NULL,
-        timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-    )";
-
-    if ($conn->query($sql) === TRUE) {
-        echo json_encode(["success" => true, "message" => "Bin created and table created successfully"]);
-    } else {
-        echo json_encode(["success" => false, "message" => "Failed to create table: " . $conn->error]);
-    }
+    echo json_encode(["success" => true, "message" => "Bin created successfully"]);
 } else {
     echo json_encode(["success" => false, "message" => "Failed to insert data"]);
 }

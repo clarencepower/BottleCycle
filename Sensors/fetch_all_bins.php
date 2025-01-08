@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 // Database connection (replace with your actual DB credentials)
 $mysqli = new mysqli($servername, $username, $password, $dbname);
 
-// Check the connection
+// Check the connection3333
 if ($mysqli->connect_error) {
     die('Connection failed: ' . $mysqli->connect_error);
 }
@@ -21,7 +21,7 @@ $sql = "SELECT
             SUM(total_medium) AS total_medium,
             SUM(total_large) AS total_large,
             SUM(total_bottles) AS total_bottles
-        FROM bottles_collected";  // Sum up all values
+        FROM bin_summary"; // Sum up all values
 
 $result = $mysqli->query($sql);
 

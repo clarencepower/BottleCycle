@@ -516,10 +516,6 @@ require '../auth.php';
     <div class="dashboard">
         <!-- Sidebar -->
         <aside class="sidebar collapsed">
-            <button class="toggle-btn" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-                
-            </button>
             <div class="logo-container">
                 <img src="../drawable/logo.png" alt="Bottle Cycle Logo" class="logo">
             </div>
@@ -559,21 +555,21 @@ require '../auth.php';
                 <div class="bottle-size">
                     <h4>Bottles Collected</h4>
                     <!-- Bin Selection Dropdown -->
-                    <button onclick="fetchAllBinsData()">All Bins</button>
+                    <!--<button onclick="fetchAllBinsData()">All Bins</button>-->
     <select id="bin-dropdown" onchange="fetchDataByBin()">
         <option value="">Select Bin</option>
         <!-- The bin options will be populated dynamically -->
     </select>
                     <div class="bottle-box">
-                        <h5>Small Bottles</h5>
+                        <h5>Hole 1</h5>
                         <p id="small-bottle-count">Loading...</p>
                     </div>
                     <div class="bottle-box">
-                        <h5>Medium Bottles</h5>
+                        <h5>Hole 2</h5>
                         <p id="medium-bottle-count">Loading...</p>
                     </div>
                     <div class="bottle-box">
-                        <h5>Large Bottles</h5>
+                        <h5>Hole 3</h5>
                         <p id="large-bottle-count">Loading...</p>
                     </div>
                     <div class="bottle-box">
@@ -737,8 +733,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     // Get location name using reverse geocoding
                     const locationResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=YOUR_API_KEY&units=metric`);
                     const locationData = await locationResponse.json();
-                    document.getElementById('location').textContent = `Location: ${locationData.name}`;
-
+                    document.getElementById('location').textContent = ``;
+                                                                    //location = ${locationData.name}
                     // Fetch weather data for user's location
                     fetchWeather(lat, lon);
                 }, (error) => {
@@ -826,7 +822,11 @@ function fetchBinIds() {
 
     // Initialize by fetching bin IDs
     fetchBinIds();
-
+    setInterval(() => {
+    if (document.getElementById('bin-dropdown')) { // Ensure the element exists
+        fetchDataByBin();
+    }
+}, 1000);
     // Function to fetch total bottles collected for all bins
     function fetchAllBinsData() {
     // Make an AJAX call to the server to fetch the total bottle data

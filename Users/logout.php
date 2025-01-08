@@ -7,4 +7,3 @@ session_destroy(); // Destroy the session
 header("Location: ../Public/index.html");
 exit();
 ?>
-

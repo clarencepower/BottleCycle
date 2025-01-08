@@ -540,8 +540,8 @@ if (isset($_POST["submit"])) {
             <section class="widget time-widget">
             <div class="profile-container">
     <img src="../drawable/logo.png" alt="Profile Logo" width="50">
-    <h3>AST Solid Waste</h3>
-    <p>astsolidwaste@gmail.com</p>
+    <h3>CTU-TC Solid Waste</h3>
+    <p>ctutc@gmail.com</p>
     <button onclick="showPopup()">Change Password</button>
 </div>
 
